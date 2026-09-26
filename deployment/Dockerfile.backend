@@ -1,0 +1,54 @@
+# ==============================================================================
+# NYAYAI - Backend Orchestrator Dockerfile
+# Module Lead: Dhananjay Sharma
+# ==============================================================================
+
+FROM python:3.11-slim
+
+# Prevent Python from writing .pyc files & enable unbuffered stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install system dependencies (build-essential, libmagic for MIME detection)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libmagic1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements across all modular engines
+COPY backend/requirements.txt ./backend_requirements.txt
+COPY forensic-engine/requirements.txt ./forensic_requirements.txt
+COPY ai-engine/requirements.txt ./ai_requirements.txt
+COPY custody/requirements.txt ./custody_requirements.txt
+COPY correlation/requirements.txt ./correlation_requirements.txt
+COPY explainability/requirements.txt ./explainability_requirements.txt
+COPY reports/requirements.txt ./reports_requirements.txt
+
+# Install all module dependencies
+RUN pip install --no-cache-dir -r backend_requirements.txt && \
+    pip install --no-cache-dir -r forensic_requirements.txt && \
+    pip install --no-cache-dir -r ai_requirements.txt && \
+    pip install --no-cache-dir -r custody_requirements.txt && \
+    pip install --no-cache-dir -r correlation_requirements.txt && \
+    pip install --no-cache-dir -r explainability_requirements.txt && \
+    pip install --no-cache-dir -r reports_requirements.txt
+
+# Copy source trees
+COPY backend/ ./backend/
+COPY forensic-engine/ ./forensic-engine/
+COPY ai-engine/ ./ai-engine/
+COPY custody/ ./custody/
+COPY correlation/ ./correlation/
+COPY explainability/ ./explainability/
+COPY reports/ ./reports/
+COPY database/ ./database/
+
+# Create evidence storage directories
+RUN mkdir -p /app/storage/vault /app/storage/reports /app/storage/temp
+
+EXPOSE 8000
+
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

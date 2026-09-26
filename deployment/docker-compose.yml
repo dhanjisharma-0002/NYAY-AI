@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for production deployment
+  nyayai-db:
+    image: postgres:15-alpine
+    container_name: nyayai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nyayai_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-SecureProdPassword2026}
+      POSTGRES_DB: nyayai_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nyayai_admin -d nyayai_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Orchestrator & Multi-Engine API
+  nyayai-backend:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.backend
+    container_name: nyayai-api
+    restart: unless-stopped
+    depends_on:
+      nyayai-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://nyayai_admin:${DB_PASSWORD:-SecureProdPassword2026}@nyayai-db:5432/nyayai_db
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production-env}
+      ENVIRONMENT: production
+      DEBUG: "False"
+      BACKEND_HOST: "0.0.0.0"
+      BACKEND_PORT: 8000
+    volumes:
+      - evidence_vault:/app/storage/vault
+      - court_reports:/app/storage/reports
+    ports:
+      - "8000:8000"
+
+  # Nginx Gateway & Static Web Server
+  nyayai-gateway:
+    image: nginx:alpine
+    container_name: nyayai-nginx
+    restart: unless-stopped
+    depends_on:
+      - nyayai-backend
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../frontend:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
+  evidence_vault:
+  court_reports:

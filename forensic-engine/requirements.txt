@@ -1,0 +1,3 @@
+# Forensic Engine Dependencies
+pillow>=10.0.0
+python-magic>=0.4.27; sys_platform != 'win32'

@@ -1,0 +1,11 @@
+{
+  "name": "nyayai-frontend",
+  "version": "0.1.0",
+  "description": "NYAYAI Digital Evidence Platform Frontend - Ayushi Sharma",
+  "scripts": {
+    "dev": "python -m http.server 3000 --directory ."
+  },
+  "keywords": ["digital-evidence", "legal-tech", "forensics", "chain-of-custody"],
+  "author": "Ayushi Sharma",
+  "license": "UNLICENSED"
+}

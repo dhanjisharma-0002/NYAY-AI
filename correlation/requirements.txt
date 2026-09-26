@@ -1,0 +1,3 @@
+# Correlation Engine Dependencies
+# Future phases will integrate networkx for knowledge graph analysis
+networkx>=3.0

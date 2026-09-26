@@ -1,0 +1,3 @@
+# Explainability Engine Dependencies
+# Phase 0 uses standard library; future phases will integrate SHAP/LIME
+numpy>=1.24.0
