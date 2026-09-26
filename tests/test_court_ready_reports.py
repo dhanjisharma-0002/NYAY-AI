@@ -80,7 +80,7 @@ def case_with_analyzed_evidence(auth_headers):
         headers=auth_headers
     )
     assert case_res.status_code == 201
-    case_id = case_res.json()["case_id"]
+    case_id = case_res.json()["data"]["case_id"]
 
     # 2. Upload Evidence
     file_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + (b"A" * 128)
@@ -240,7 +240,7 @@ def test_case_with_multiple_evidence(auth_headers):
         },
         headers=auth_headers
     )
-    case_id = case_res.json()["case_id"]
+    case_id = case_res.json()["data"]["case_id"]
 
     # Upload Evidence 1 (Audio)
     audio_bytes = b"RIFF" + (b"\x00" * 32) + b"WAVEfmt " + (b"\x00" * 64)
@@ -320,7 +320,7 @@ def test_case_with_no_analysis(auth_headers):
         },
         headers=auth_headers
     )
-    case_id = case_res.json()["case_id"]
+    case_id = case_res.json()["data"]["case_id"]
 
     # Ingest evidence but DO NOT run any forensic or AI analysis
     raw_data = b"UNANALYZED_RAW_BINARY_DATA_0123456789"
@@ -351,8 +351,11 @@ def test_case_with_no_analysis(auth_headers):
     # Must prominently state "Analysis not available"
     assert "Analysis not available" in all_content
 
-    # Must NOT fabricate AI tamper predictions
+    # Must NOT fabricate AI tamper predictions or authenticity conclusions
     assert "TAMPER_DETECTED" not in all_content
+    assert "AUTHENTIC" not in all_content
+    assert "Structure verified" not in all_content
+    assert "Structural integrity verified" not in all_content
 
 
 # =============================================================================
@@ -374,7 +377,7 @@ def test_missing_data_handling(auth_headers):
         },
         headers=auth_headers
     )
-    case_id = case_res.json()["case_id"]
+    case_id = case_res.json()["data"]["case_id"]
 
     # Upload evidence with minimal fields
     res_ev = client.post(

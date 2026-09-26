@@ -12,7 +12,7 @@ Provides REST endpoints for:
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, Header, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -77,18 +77,35 @@ def generate_court_ready_report_endpoint(
         req_format = payload.format
     elif format:
         req_format = format
+    req_format = req_format.upper().strip()
+    if req_format not in ("PDF", "DOCX"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported report format: {req_format}. Must be 'PDF' or 'DOCX'."
+        )
 
-    officer_name = payload.certifying_officer_name if payload else "Dhananjay Sharma"
-    officer_designation = payload.certifying_officer_designation if payload else "Forensic Systems Lead"
-    badge_number = payload.badge_number if payload else "INV-DL-9841"
-    jurisdiction = payload.jurisdiction if payload else "High Court of Delhi"
+    def _provided(value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        stripped = str(value).strip()
+        return stripped or None
+
+    officer_name = _provided(payload.certifying_officer_name) if payload else None
+    officer_designation = _provided(payload.certifying_officer_designation) if payload else None
+    badge_number = _provided(payload.badge_number) if payload else None
+    jurisdiction = _provided(payload.jurisdiction) if payload else None
+
+    if current_user:
+        officer_name = officer_name or _provided(current_user.full_name)
+        officer_designation = officer_designation or _provided(current_user.role)
+        badge_number = badge_number or _provided(current_user.badge_number)
 
     report = service.generate_court_ready_report(
         case_id=case_id,
         report_format=req_format,
-        certifying_officer_name=officer_name or "Dhananjay Sharma",
-        certifying_officer_designation=officer_designation or "Forensic Systems Lead",
-        badge_number=badge_number or "INV-DL-9841",
+        certifying_officer_name=officer_name,
+        certifying_officer_designation=officer_designation,
+        badge_number=badge_number,
         jurisdiction=jurisdiction,
         user_id=user_id
     )

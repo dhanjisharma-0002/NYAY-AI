@@ -66,6 +66,71 @@ except ImportError:
     QRCODE_AVAILABLE = False
 
 
+ANALYSIS_NOT_AVAILABLE = "Analysis not available"
+
+
+def _display_value(value: Any, join_lists: bool = False) -> str:
+    """Render stored data only; never invent a forensic or AI conclusion."""
+    if value is None:
+        return ANALYSIS_NOT_AVAILABLE
+    if isinstance(value, str):
+        stripped = value.strip()
+        return stripped if stripped else ANALYSIS_NOT_AVAILABLE
+    if isinstance(value, (list, tuple)):
+        if not value:
+            return ANALYSIS_NOT_AVAILABLE
+        if join_lists:
+            parts = [str(item).strip() for item in value if item is not None and str(item).strip()]
+            return ", ".join(parts) if parts else ANALYSIS_NOT_AVAILABLE
+        return str(value)
+    if isinstance(value, dict) and not value:
+        return ANALYSIS_NOT_AVAILABLE
+    return str(value)
+
+
+def _sha256_display(evidence_item: Dict[str, Any]) -> tuple:
+    digest = evidence_item.get("sha256_hash")
+    digest_text = _display_value(digest)
+    if digest_text == ANALYSIS_NOT_AVAILABLE:
+        return ANALYSIS_NOT_AVAILABLE, ANALYSIS_NOT_AVAILABLE, ANALYSIS_NOT_AVAILABLE
+    return digest_text, "VERIFIED", "SHA-256"
+
+
+def _format_percent(value: Any) -> str:
+    if value is None:
+        return ANALYSIS_NOT_AVAILABLE
+    try:
+        return f"{float(value) * 100:.1f}%"
+    except (TypeError, ValueError):
+        return ANALYSIS_NOT_AVAILABLE
+
+
+def _confidence_tier(conf: Any) -> str:
+    if conf is None:
+        return ANALYSIS_NOT_AVAILABLE
+    try:
+        score = float(conf)
+    except (TypeError, ValueError):
+        return ANALYSIS_NOT_AVAILABLE
+    if score >= 0.8:
+        return "HIGH"
+    if score >= 0.6:
+        return "MEDIUM"
+    if score >= 0.4:
+        return "LOW"
+    return "INCONCLUSIVE"
+
+
+def _risk_assessment(risk: Any) -> str:
+    if risk is None:
+        return ANALYSIS_NOT_AVAILABLE
+    try:
+        score = float(risk)
+    except (TypeError, ValueError):
+        return ANALYSIS_NOT_AVAILABLE
+    return "HIGH RISK" if score > 0.5 else "LOW RISK"
+
+
 def _make_numbered_canvas(case_number: str, report_id: str):
     """
     Factory creating a two-pass canvas that dynamically calculates and renders
@@ -253,7 +318,7 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
         generated_at = datetime.now(timezone.utc).isoformat()
         verify_url = f"{self.base_verify_url}/{code}"
 
-        case_number = case_data.get("case_number", f"CR-{datetime.now(timezone.utc).year}-CASE")
+        case_number = _display_value(case_data.get("case_number"))
         fmt = report_format.upper().strip()
         if fmt not in ("PDF", "DOCX"):
             fmt = "PDF"
@@ -354,7 +419,7 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
         if not REPORTLAB_AVAILABLE:
             raise RuntimeError("ReportLab library is required for PDF generation.")
 
-        case_number = case_data.get("case_number", "CR-NYAYAI-CASE")
+        case_number = _display_value(case_data.get("case_number"))
         doc = SimpleDocTemplate(
             file_path,
             pagesize=letter,
@@ -495,16 +560,20 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
         story.append(Paragraph("1. Case Information", h1_style))
         story.append(Paragraph("[System-Generated Analysis] &amp; [User-Provided Information]", source_badge))
         story.append(Spacer(1, 3))
+        created_at_raw = case_data.get("created_at")
+        created_at_display = _display_value(created_at_raw)
+        if created_at_display != ANALYSIS_NOT_AVAILABLE:
+            created_at_display = str(created_at_raw)[:19]
         case_info_data = [
             [Paragraph("<b>Case Number:</b>", body_bold), Paragraph(str(case_number), body_style),
-             Paragraph("<b>Case ID:</b>", body_bold), Paragraph(str(case_data.get("case_id", "N/A")), mono_style)],
-            [Paragraph("<b>Case Title:</b>", body_bold), Paragraph(str(case_data.get("title", "Untitled Case")), body_style),
-             Paragraph("<b>Jurisdiction:</b>", body_bold), Paragraph(str(case_data.get("jurisdiction", "High Court of Delhi")), body_style)],
-            [Paragraph("<b>Status:</b>", body_bold), Paragraph(str(case_data.get("status", "OPEN")), body_style),
-             Paragraph("<b>Created At:</b>", body_bold), Paragraph(str(case_data.get("created_at", "N/A"))[:19], body_style)],
-            [Paragraph("<b>Certifying Officer:</b>", body_bold), Paragraph(str(certifying_officer.get("name", "Dhananjay Sharma")), body_style),
-             Paragraph("<b>Badge Number:</b>", body_bold), Paragraph(str(certifying_officer.get("badge_number", "INV-DL-9841")), body_style)],
-            [Paragraph("<b>Description:</b>", body_bold), Paragraph(str(case_data.get("description") or "None provided"), body_style), "", ""]
+             Paragraph("<b>Case ID:</b>", body_bold), Paragraph(_display_value(case_data.get("case_id")), mono_style)],
+            [Paragraph("<b>Case Title:</b>", body_bold), Paragraph(_display_value(case_data.get("title")), body_style),
+             Paragraph("<b>Jurisdiction:</b>", body_bold), Paragraph(_display_value(case_data.get("jurisdiction")), body_style)],
+            [Paragraph("<b>Status:</b>", body_bold), Paragraph(_display_value(case_data.get("status")), body_style),
+             Paragraph("<b>Created At:</b>", body_bold), Paragraph(created_at_display, body_style)],
+            [Paragraph("<b>Certifying Officer:</b>", body_bold), Paragraph(_display_value(certifying_officer.get("name")), body_style),
+             Paragraph("<b>Badge Number:</b>", body_bold), Paragraph(_display_value(certifying_officer.get("badge_number")), body_style)],
+            [Paragraph("<b>Description:</b>", body_bold), Paragraph(_display_value(case_data.get("description")), body_style), "", ""]
         ]
         c_table = Table(case_info_data, colWidths=[90, 162, 90, 162])
         c_table.setStyle(TableStyle([
@@ -535,15 +604,15 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 Paragraph("<b>Intake Description</b>", body_bold)
             ]]
             for ev in evidence_items:
-                size_b = ev.get("file_size_bytes", ev.get("file_size", 0))
-                size_str = f"{size_b:,} B" if size_b else "Unknown"
+                size_b = ev.get("file_size_bytes", ev.get("file_size"))
+                size_str = ANALYSIS_NOT_AVAILABLE if size_b is None else f"{size_b:,} B"
                 inv_rows.append([
                     Paragraph(str(ev.get("evidence_id")), mono_style),
-                    Paragraph(str(ev.get("original_filename", "N/A")), body_style),
-                    Paragraph(str(ev.get("mime_type", ev.get("media_type", "N/A"))), body_style),
+                    Paragraph(_display_value(ev.get("original_filename")), body_style),
+                    Paragraph(_display_value(ev.get("mime_type") or ev.get("media_type")), body_style),
                     Paragraph(size_str, body_style),
-                    Paragraph(str(ev.get("status", "SECURED")), body_style),
-                    Paragraph(str(ev.get("source_description") or "N/A"), body_style)
+                    Paragraph(_display_value(ev.get("status")), body_style),
+                    Paragraph(_display_value(ev.get("source_description")), body_style)
                 ])
             inv_table = Table(inv_rows, colWidths=[80, 110, 84, 55, 65, 110])
             inv_table.setStyle(TableStyle([
@@ -571,11 +640,12 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 Paragraph("<b>Algorithm</b>", body_bold)
             ]]
             for ev in evidence_items:
+                digest_text, hash_status, hash_algo = _sha256_display(ev)
                 hash_rows.append([
                     Paragraph(str(ev.get("evidence_id")), mono_style),
-                    Paragraph(str(ev.get("sha256_hash", "Analysis not available")), mono_style),
-                    Paragraph("VERIFIED", body_style),
-                    Paragraph("SHA-256", body_style)
+                    Paragraph(digest_text, mono_style),
+                    Paragraph(hash_status, body_style),
+                    Paragraph(hash_algo, body_style)
                 ])
             hash_table = Table(hash_rows, colWidths=[80, 274, 75, 75])
             hash_table.setStyle(TableStyle([
@@ -643,11 +713,14 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 story.append(make_na_callout(f"Forensic Findings for {ev_id}", "[System-Generated Analysis]"))
             else:
                 for f_item in findings_list:
+                    findings_text = _display_value(f_item.get("findings"), join_lists=True)
+                    if findings_text == ANALYSIS_NOT_AVAILABLE:
+                        findings_text = _display_value(f_item.get("explanation"))
                     f_rows = [
-                        [Paragraph("<b>Analysis Type:</b>", body_bold), Paragraph(str(f_item.get("analysis_type", "FORENSIC")), body_style),
-                         Paragraph("<b>Status:</b>", body_bold), Paragraph(str(f_item.get("status", "COMPLETED")), body_style)],
+                        [Paragraph("<b>Analysis Type:</b>", body_bold), Paragraph(_display_value(f_item.get("analysis_type")), body_style),
+                         Paragraph("<b>Status:</b>", body_bold), Paragraph(_display_value(f_item.get("status")), body_style)],
                         [Paragraph("<b>Findings:</b>", body_bold),
-                         Paragraph(str(f_item.get("findings") or f_item.get("explanation") or "Structure verified"), body_style), "", ""]
+                         Paragraph(findings_text, body_style), "", ""]
                     ]
                     f_tab = Table(f_rows, colWidths=[90, 162, 90, 162])
                     f_tab.setStyle(TableStyle([
@@ -674,14 +747,21 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 story.append(make_na_callout(f"AI Analysis for {ev_id}", "[AI Output]"))
             else:
                 for ai_res in ai_list:
-                    pred = ai_res.get("prediction", "AUTHENTIC")
-                    model = f"{ai_res.get('model_name', 'TamperScreener')} v{ai_res.get('model_version', '0.1.0')}"
-                    ai_findings = ai_res.get("findings", [])
+                    pred = _display_value(ai_res.get("prediction"))
+                    model_name = _display_value(ai_res.get("model_name"))
+                    model_version = _display_value(ai_res.get("model_version"))
+                    if model_name == ANALYSIS_NOT_AVAILABLE and model_version == ANALYSIS_NOT_AVAILABLE:
+                        model = ANALYSIS_NOT_AVAILABLE
+                    elif model_version == ANALYSIS_NOT_AVAILABLE:
+                        model = model_name
+                    else:
+                        model = f"{model_name} v{model_version}"
+                    ai_findings = _display_value(ai_res.get("findings"), join_lists=True)
                     ai_rows = [
                         [Paragraph("<b>Model Architecture:</b>", body_bold), Paragraph(model, body_style),
                          Paragraph("<b>Prediction:</b>", body_bold), Paragraph(str(pred), body_bold)],
                         [Paragraph("<b>AI Flagged Features:</b>", body_bold),
-                         Paragraph(", ".join(ai_findings) if ai_findings else "No anomalies detected by neural model", body_style), "", ""]
+                         Paragraph(ai_findings, body_style), "", ""]
                     ]
                     ai_tab = Table(ai_rows, colWidths=[90, 162, 90, 162])
                     ai_tab.setStyle(TableStyle([
@@ -708,22 +788,14 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 story.append(make_na_callout(f"Confidence/Risk for {ev_id}", "[AI Output]"))
             else:
                 ai_res = ai_list[0]
-                conf = ai_res.get("confidence", 0.0)
-                risk = ai_res.get("risk_score", 0.0)
-                if conf >= 0.8:
-                    tier = "HIGH"
-                elif conf >= 0.6:
-                    tier = "MEDIUM"
-                elif conf >= 0.4:
-                    tier = "LOW"
-                else:
-                    tier = "INCONCLUSIVE"
+                conf = ai_res.get("confidence")
+                risk = ai_res.get("risk_score")
                 risk_rows = [
-                    [Paragraph("<b>Model Confidence:</b>", body_bold), Paragraph(f"{conf * 100:.1f}%", body_style),
-                     Paragraph("<b>Confidence Tier:</b>", body_bold), Paragraph(tier, body_bold)],
-                    [Paragraph("<b>Tamper Risk Score:</b>", body_bold), Paragraph(f"{risk * 100:.1f}%", body_style),
+                    [Paragraph("<b>Model Confidence:</b>", body_bold), Paragraph(_format_percent(conf), body_style),
+                     Paragraph("<b>Confidence Tier:</b>", body_bold), Paragraph(_confidence_tier(conf), body_bold)],
+                    [Paragraph("<b>Tamper Risk Score:</b>", body_bold), Paragraph(_format_percent(risk), body_style),
                      Paragraph("<b>Assessment:</b>", body_bold),
-                     Paragraph("HIGH RISK" if risk > 0.5 else "LOW RISK", body_style)]
+                     Paragraph(_risk_assessment(risk), body_style)]
                 ]
                 r_tab = Table(risk_rows, colWidths=[90, 162, 90, 162])
                 r_tab.setStyle(TableStyle([
@@ -748,22 +820,18 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
             if not exp:
                 story.append(make_na_callout(f"Explainability for {ev_id}", "[AI Output]"))
             else:
-                summary = exp.get("reasoning_summary", "Analysis completed without narrative explanation.")
-                factors = exp.get("feature_attributions") or exp.get("contributing_factors") or []
+                summary = _display_value(exp.get("reasoning_summary"))
+                factors = exp.get("feature_attributions") or exp.get("contributing_factors")
                 if isinstance(factors, str):
                     try:
                         factors = json.loads(factors)
                     except Exception:
-                        factors = [factors]
-                disclaimer = exp.get("limitations_disclaimer", (
-                    "Automated analysis serves as an investigative screening aid. "
-                    "Under Bharatiya Sakshya Adhiniyam standards, automated scores must be corroborated by "
-                    "an accredited forensic expert before final judicial determination."
-                ))
+                        factors = [factors] if factors.strip() else None
+                disclaimer = _display_value(exp.get("limitations_disclaimer"))
                 exp_rows = [
                     [Paragraph("<b>Reasoning Summary:</b>", body_bold), Paragraph(str(summary), body_style)],
                     [Paragraph("<b>Contributing Factors:</b>", body_bold),
-                     Paragraph(", ".join(factors) if factors else "None flagged", body_style)],
+                     Paragraph(_display_value(factors, join_lists=True), body_style)],
                     [Paragraph("<b>Judicial Disclaimer:</b>", body_bold), Paragraph(str(disclaimer), na_style)]
                 ]
                 e_tab = Table(exp_rows, colWidths=[120, 384])
@@ -953,10 +1021,10 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
             [
                 Paragraph(
                     f"<b>Certified By:</b><br/>"
-                    f"<b>Officer Name:</b> {certifying_officer.get('name', 'Dhananjay Sharma')}<br/>"
-                    f"<b>Designation:</b> {certifying_officer.get('designation', 'Forensic Systems Lead')}<br/>"
-                    f"<b>Badge Number:</b> {certifying_officer.get('badge_number', 'INV-DL-9841')}<br/>"
-                    f"<b>Digital Signature:</b> <i>[VERIFIED VIA NYAYAI CRYPTOGRAPHIC KEYSTORE]</i>",
+                    f"<b>Officer Name:</b> {_display_value(certifying_officer.get('name'))}<br/>"
+                    f"<b>Designation:</b> {_display_value(certifying_officer.get('designation'))}<br/>"
+                    f"<b>Badge Number:</b> {_display_value(certifying_officer.get('badge_number'))}<br/>"
+                    f"<b>Digital Signature:</b> <i>[{ANALYSIS_NOT_AVAILABLE}]</i>",
                     body_style
                 ),
                 Paragraph(
@@ -1007,7 +1075,7 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
             raise RuntimeError("python-docx library is required for DOCX generation.")
 
         doc = docx.Document()
-        case_number = case_data.get("case_number", "CR-NYAYAI-CASE")
+        case_number = _display_value(case_data.get("case_number"))
 
         # Set standard margins (1 inch)
         for section in doc.sections:
@@ -1074,10 +1142,10 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
         c_table.alignment = WD_TABLE_ALIGNMENT.CENTER
         fields = [
             ("Case Number", str(case_number)),
-            ("Case ID", str(case_data.get("case_id", "N/A"))),
-            ("Case Title", str(case_data.get("title", "Untitled Case"))),
-            ("Jurisdiction", str(case_data.get("jurisdiction", "High Court of Delhi"))),
-            ("Status", str(case_data.get("status", "OPEN"))),
+            ("Case ID", _display_value(case_data.get("case_id"))),
+            ("Case Title", _display_value(case_data.get("title"))),
+            ("Jurisdiction", _display_value(case_data.get("jurisdiction"))),
+            ("Status", _display_value(case_data.get("status"))),
         ]
         for idx, (label, val) in enumerate(fields):
             c_table.cell(idx, 0).text = label
@@ -1100,11 +1168,11 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                     cell.paragraphs[0].runs[0].font.bold = True
             for r_idx, ev in enumerate(evidence_items, start=1):
                 inv_table.cell(r_idx, 0).text = str(ev.get("evidence_id"))
-                inv_table.cell(r_idx, 1).text = str(ev.get("original_filename", "N/A"))
-                inv_table.cell(r_idx, 2).text = str(ev.get("mime_type", ev.get("media_type", "N/A")))
-                inv_table.cell(r_idx, 3).text = str(ev.get("file_size_bytes", ev.get("file_size", "N/A")))
-                inv_table.cell(r_idx, 4).text = str(ev.get("status", "SECURED"))
-                inv_table.cell(r_idx, 5).text = str(ev.get("source_description") or "N/A")
+                inv_table.cell(r_idx, 1).text = _display_value(ev.get("original_filename"))
+                inv_table.cell(r_idx, 2).text = _display_value(ev.get("mime_type") or ev.get("media_type"))
+                inv_table.cell(r_idx, 3).text = _display_value(ev.get("file_size_bytes", ev.get("file_size")))
+                inv_table.cell(r_idx, 4).text = _display_value(ev.get("status"))
+                inv_table.cell(r_idx, 5).text = _display_value(ev.get("source_description"))
 
         # --- 3. SHA-256 INTEGRITY INFORMATION ---
         add_section_header("3. SHA-256 Integrity Information", "[System-Generated Analysis]")
@@ -1121,10 +1189,13 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                     cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
                     cell.paragraphs[0].runs[0].font.bold = True
             for r_idx, ev in enumerate(evidence_items, start=1):
+                digest_text, hash_status, hash_algo = _sha256_display(ev)
                 hash_table.cell(r_idx, 0).text = str(ev.get("evidence_id"))
-                hash_table.cell(r_idx, 1).text = str(ev.get("sha256_hash", "Analysis not available"))
-                hash_table.cell(r_idx, 2).text = "VERIFIED"
-                hash_table.cell(r_idx, 3).text = "FIPS PUB 180-4 (SHA-256)"
+                hash_table.cell(r_idx, 1).text = digest_text
+                hash_table.cell(r_idx, 2).text = hash_status
+                hash_table.cell(r_idx, 3).text = (
+                    "FIPS PUB 180-4 (SHA-256)" if hash_status == "VERIFIED" else ANALYSIS_NOT_AVAILABLE
+                )
 
         # --- 4. METADATA FINDINGS ---
         add_section_header("4. Metadata Findings", "[Metadata]")
@@ -1154,9 +1225,15 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 add_na_callout(f"Forensic Findings for {ev_id}", "System-Generated Analysis")
             else:
                 for f_item in findings_list:
+                    findings_text = _display_value(f_item.get("findings"), join_lists=True)
+                    if findings_text == ANALYSIS_NOT_AVAILABLE:
+                        findings_text = _display_value(f_item.get("explanation"))
                     p = doc.add_paragraph()
-                    p.add_run(f"Analysis Type: {f_item.get('analysis_type', 'FORENSIC')} | Status: {f_item.get('status', 'COMPLETED')}\n")
-                    p.add_run(f"Findings: {f_item.get('findings') or f_item.get('explanation') or 'Structural integrity verified'}")
+                    p.add_run(
+                        f"Analysis Type: {_display_value(f_item.get('analysis_type'))} | "
+                        f"Status: {_display_value(f_item.get('status'))}\n"
+                    )
+                    p.add_run(f"Findings: {findings_text}")
         if not evidence_items:
             add_na_callout("Forensic Findings", "System-Generated Analysis")
 
@@ -1170,10 +1247,12 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 add_na_callout(f"AI Analysis for {ev_id}", "AI Output")
             else:
                 for ai_res in ai_list:
+                    model_name = _display_value(ai_res.get("model_name"))
+                    model_version = _display_value(ai_res.get("model_version"))
                     p = doc.add_paragraph()
-                    p.add_run(f"Model: {ai_res.get('model_name', 'TamperScreener')} v{ai_res.get('model_version', '0.1.0')}\n")
-                    p.add_run(f"Prediction: {ai_res.get('prediction', 'AUTHENTIC')}\n")
-                    p.add_run(f"Flagged Features: {', '.join(ai_res.get('findings', [])) if ai_res.get('findings') else 'No anomalies flagged'}")
+                    p.add_run(f"Model: {model_name} v{model_version}\n")
+                    p.add_run(f"Prediction: {_display_value(ai_res.get('prediction'))}\n")
+                    p.add_run(f"Flagged Features: {_display_value(ai_res.get('findings'), join_lists=True)}")
         if not evidence_items:
             add_na_callout("AI Analysis", "AI Output")
 
@@ -1187,12 +1266,12 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 add_na_callout(f"Confidence/Risk for {ev_id}", "AI Output")
             else:
                 ai_res = ai_list[0]
-                conf = ai_res.get("confidence", 0.0)
-                risk = ai_res.get("risk_score", 0.0)
+                conf = ai_res.get("confidence")
+                risk = ai_res.get("risk_score")
                 p = doc.add_paragraph()
-                p.add_run(f"Confidence Score: {conf * 100:.1f}%\n")
-                p.add_run(f"Risk Score: {risk * 100:.1f}%\n")
-                p.add_run(f"Assessment: {'HIGH RISK' if risk > 0.5 else 'LOW RISK'}")
+                p.add_run(f"Confidence Score: {_format_percent(conf)}\n")
+                p.add_run(f"Risk Score: {_format_percent(risk)}\n")
+                p.add_run(f"Assessment: {_risk_assessment(risk)}")
         if not evidence_items:
             add_na_callout("Confidence / Risk Information", "AI Output")
 
@@ -1206,8 +1285,8 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
                 add_na_callout(f"Explainability for {ev_id}", "AI Output")
             else:
                 p = doc.add_paragraph()
-                p.add_run(f"Reasoning Summary:\n{exp.get('reasoning_summary', 'N/A')}\n\n")
-                p.add_run(f"Statutory Limitations Disclaimer:\n{exp.get('limitations_disclaimer', 'N/A')}")
+                p.add_run(f"Reasoning Summary:\n{_display_value(exp.get('reasoning_summary'))}\n\n")
+                p.add_run(f"Statutory Limitations Disclaimer:\n{_display_value(exp.get('limitations_disclaimer'))}")
         if not evidence_items:
             add_na_callout("Explainability References", "AI Output")
 
@@ -1295,9 +1374,10 @@ class CourtAdmissibilityReportGenerator(BaseReportGenerator):
 
         sig_p = doc.add_paragraph()
         sig_p.add_run(
-            f"\nCertifying Officer: {certifying_officer.get('name', 'Dhananjay Sharma')}\n"
-            f"Badge / Designation: {certifying_officer.get('badge_number', 'INV-DL-9841')} - {certifying_officer.get('designation', 'Forensic Systems Lead')}\n"
-            f"Signature: [Cryptographically Signed by NYAYAI Keystore]"
+            f"\nCertifying Officer: {_display_value(certifying_officer.get('name'))}\n"
+            f"Badge / Designation: {_display_value(certifying_officer.get('badge_number'))} - "
+            f"{_display_value(certifying_officer.get('designation'))}\n"
+            f"Signature: [{ANALYSIS_NOT_AVAILABLE}]"
         )
 
         doc.save(file_path)

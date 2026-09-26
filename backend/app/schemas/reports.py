@@ -15,10 +15,10 @@ class ReportFormat(str, Enum):
 
 class ReportGenerateRequest(BaseModel):
     format: Optional[str] = Field(default="PDF", description="Report output format: PDF or DOCX")
-    certifying_officer_name: Optional[str] = Field(default="Dhananjay Sharma", description="Full legal name of the certifying forensic examiner")
-    certifying_officer_designation: Optional[str] = Field(default="Forensic Systems Lead", description="Official title / designation")
-    badge_number: Optional[str] = Field(default="INV-DL-9841", description="Investigator badge or examiner identification number")
-    jurisdiction: Optional[str] = Field(default="High Court of Delhi", description="Relevant legal judicial jurisdiction")
+    certifying_officer_name: Optional[str] = Field(default=None, description="Full legal name of the certifying forensic examiner")
+    certifying_officer_designation: Optional[str] = Field(default=None, description="Official title / designation")
+    badge_number: Optional[str] = Field(default=None, description="Investigator badge or examiner identification number")
+    jurisdiction: Optional[str] = Field(default=None, description="Relevant legal judicial jurisdiction")
 
 
 class ReportGenerateResponse(BaseModel):

@@ -30,6 +30,16 @@ from reports import CourtAdmissibilityReportGenerator
 logger = get_logger("report_service")
 
 
+def _is_forensic_analysis_type(analysis_type: Optional[str]) -> bool:
+    """Classify stored AnalysisResult rows without changing the schema."""
+    atype = (analysis_type or "").strip().upper()
+    if not atype:
+        return False
+    if atype in {"FORENSIC", "FORENSIC_INSPECTION", "METADATA_INSPECTION"}:
+        return True
+    return atype.startswith("FORENSIC")
+
+
 class ReportService(BaseService):
     """
     Manages end-to-end report synthesis, storage, verification, and artifact downloads.
@@ -43,9 +53,9 @@ class ReportService(BaseService):
         self,
         case_id: str,
         report_format: str = "PDF",
-        certifying_officer_name: str = "Dhananjay Sharma",
-        certifying_officer_designation: str = "Forensic Systems Lead",
-        badge_number: str = "INV-DL-9841",
+        certifying_officer_name: Optional[str] = None,
+        certifying_officer_designation: Optional[str] = None,
+        badge_number: Optional[str] = None,
         jurisdiction: Optional[str] = None,
         user_id: str = "USR-SYSTEM-LEAD"
     ) -> Report:
@@ -120,7 +130,7 @@ class ReportService(BaseService):
                     "model_name": r.model_name,
                     "model_version": r.model_version
                 }
-                if r.analysis_type.upper() in ("FORENSIC", "METADATA_INSPECTION"):
+                if _is_forensic_analysis_type(r.analysis_type):
                     f_list.append(res_dict)
                 else:
                     ai_list.append(res_dict)
@@ -191,7 +201,7 @@ class ReportService(BaseService):
             "name": certifying_officer_name,
             "designation": certifying_officer_designation,
             "badge_number": badge_number,
-            "role": "Forensic Systems Lead"
+            "role": certifying_officer_designation
         }
 
         # 10. Generate court-ready document artifact
