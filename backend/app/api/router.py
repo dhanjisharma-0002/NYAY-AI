@@ -16,6 +16,7 @@ from backend.app.api.reports import router as reports_router
 from backend.app.api.verification import router as verification_router
 from backend.app.api.v1.pipeline import router as pipeline_router
 from backend.app.api.rbac_demo import router as rbac_router
+from backend.app.api.audit import router as audit_router
 
 # Master API Router (mounted at /api)
 api_router = APIRouter()
@@ -35,6 +36,7 @@ api_router.include_router(custody_router)
 api_router.include_router(reports_router)
 api_router.include_router(verification_router)
 api_router.include_router(pipeline_router)
+api_router.include_router(audit_router)
 
 # Versioned router (mounted at /api/v1)
 api_v1_router = APIRouter()
@@ -50,3 +52,5 @@ api_v1_router.include_router(custody_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(verification_router)
 api_v1_router.include_router(pipeline_router)
+api_v1_router.include_router(audit_router)
+

@@ -20,6 +20,7 @@ from backend.app.models.analysis_result import AnalysisResult
 from backend.app.models.explainability import ExplainabilityRecord
 from backend.app.models.custody import CustodyEvent, CustodyEventType
 from backend.app.models.report import Report, CourtReport
+from backend.app.models.audit import AuditLog
 from backend.app.services.base import BaseService
 from backend.app.services.correlation_service import CorrelationService
 from backend.app.services.custody_service import CustodyService
@@ -342,7 +343,30 @@ class ReportService(BaseService):
             except Exception as ce:
                 logger.warning(f"Could not append REPORT_GENERATED custody event for {e.evidence_id}: {ce}")
 
+        # Audit Log: REPORT_GENERATED
+        try:
+            import uuid
+            audit_entry = AuditLog(
+                audit_id=f"AUD-{uuid.uuid4().hex[:12].upper()}",
+                user_id=user_id if user_id and not str(user_id).startswith("USR-") else None,
+                action="REPORT_GENERATED",
+                resource_type="REPORT",
+                resource_id=db_report.report_id,
+                meta_data={
+                    "case_id": case.case_id,
+                    "report_sha256": db_report.report_sha256,
+                    "compliance_framework": db_report.compliance_framework,
+                    "evidence_count": len(evidence_records),
+                    "certifying_officer": certifying_officer_name
+                }
+            )
+            self.db.add(audit_entry)
+            self.db.commit()
+        except Exception as ae:
+            logger.warning(f"Could not record REPORT_GENERATED audit log: {ae}")
+
         return db_report
+
 
     def get_report(self, report_id: str) -> Report:
         """Fetch report record by report_id."""

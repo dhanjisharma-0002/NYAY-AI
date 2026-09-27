@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.case import Case, generate_case_number
 from backend.app.models.user import User
+from backend.app.models.audit import AuditLog
 from backend.app.schemas.cases import CaseCreateRequest, CaseUpdateRequest, CaseStatusEnum
 from backend.app.services.base import BaseService
 from backend.app.utils.exceptions import EntityNotFoundException, ValidationException
@@ -59,6 +60,23 @@ class CaseService(BaseService):
             updated_at=now
         )
         self.db.add(new_case)
+
+        # Audit Log: CASE_CREATED
+        audit_entry = AuditLog(
+            audit_id=f"AUD-{uuid.uuid4().hex[:12].upper()}",
+            user_id=creator.id,
+            action="CASE_CREATED",
+            resource_type="CASE",
+            resource_id=new_case.case_id,
+            meta_data={
+                "case_number": new_case.case_number,
+                "title": new_case.title,
+                "jurisdiction": new_case.jurisdiction,
+                "status": new_case.status
+            }
+        )
+        self.db.add(audit_entry)
+
         self.db.commit()
         self.db.refresh(new_case)
         self.logger.info(f"Registered case docket {case_id} ({case_number}) by {creator.username}")
@@ -102,7 +120,24 @@ class CaseService(BaseService):
             case.jurisdiction = payload.jurisdiction
 
         case.updated_at = datetime.now(timezone.utc)
+
+        # Audit Log: CASE_UPDATED
+        audit_entry = AuditLog(
+            audit_id=f"AUD-{uuid.uuid4().hex[:12].upper()}",
+            user_id=case.created_by,
+            action="CASE_UPDATED",
+            resource_type="CASE",
+            resource_id=case.case_id,
+            meta_data={
+                "status": case.status,
+                "title": case.title,
+                "jurisdiction": case.jurisdiction
+            }
+        )
+        self.db.add(audit_entry)
+
         self.db.commit()
         self.db.refresh(case)
         self.logger.info(f"Updated case docket {case_id}: status={case.status}, title={case.title}")
         return case
+
