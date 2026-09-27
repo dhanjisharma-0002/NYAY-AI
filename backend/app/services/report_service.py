@@ -374,21 +374,6 @@ class ReportService(BaseService):
         return file_path, filename, media_type
 
     def verify_report(self, report_id: str) -> Dict[str, Any]:
-        report = self.db.query(CourtReport).filter_by(report_id=report_id).first()
-        if not report:
-            raise EntityNotFoundException("CourtReport", report_id)
+        from backend.app.services.verification_service import VerificationService
+        return VerificationService(self.db).verify_report(report_id)
 
-        case = self.db.query(Case).filter_by(case_id=report.case_id).first()
-        evidence_count = self.db.query(EvidenceItem).filter_by(case_id=report.case_id).count()
-
-        return {
-            "verified": True,
-            "report_id": report.report_id,
-            "case_id": report.case_id,
-            "case_title": case.title if case else "N/A",
-            "official_report_sha256": report.report_sha256,
-            "compliance_framework": report.compliance_framework,
-            "certified_evidence_count": evidence_count,
-            "issued_at": report.created_at.isoformat(),
-            "integrity_status": "AUTHENTIC_AND_UNCOMPROMISED"
-        }

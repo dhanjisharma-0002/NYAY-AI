@@ -14,6 +14,7 @@ from .report_service import ReportService
 from .auth_service import AuthService
 from .hashing_service import HashingService
 from .integrity_service import EvidenceIntegrityService
+from .verification_service import VerificationService
 
 __all__ = [
     "BaseService",
@@ -26,5 +27,7 @@ __all__ = [
     "ReportService",
     "AuthService",
     "HashingService",
-    "EvidenceIntegrityService"
+    "EvidenceIntegrityService",
+    "VerificationService"
 ]
+
