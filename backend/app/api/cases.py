@@ -27,11 +27,17 @@ from backend.app.schemas.case_finalization import (
     CaseFinalizationResponse,
     DocketSealingManifestResponse
 )
+from backend.app.schemas.admissibility import (
+    CaseAdmissibilityRequest,
+    CaseAdmissibilityResponse,
+    AdmissibilityCertificateResponse
+)
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
 from backend.app.services.dashboard_service import DashboardService
 from backend.app.services.pipeline_batch_service import PipelineBatchService
 from backend.app.services.case_finalization_service import CaseFinalizationService
+from backend.app.services.admissibility_service import AdmissibilityService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
@@ -44,6 +50,11 @@ auth_case_finalizer = require_roles("INVESTIGATOR", "ADMIN", "JUDGE", "SYSTEM_LE
 # Case viewers: INVESTIGATOR, ADMIN, LAWYER, JUDGE, and legacy roles
 auth_case_viewer = require_roles(
     "INVESTIGATOR", "ADMIN", "LAWYER", "JUDGE", "SYSTEM_LEAD", "FORENSIC_EXPERT", "AUDITOR"
+)
+
+# Judicial admissibility verifiers (Phase 18): JUDGE, ADMIN, AUDITOR, SYSTEM_LEAD, LAWYER, INVESTIGATOR
+auth_admissibility_verifier = require_roles(
+    "JUDGE", "ADMIN", "AUDITOR", "SYSTEM_LEAD", "LAWYER", "INVESTIGATOR"
 )
 
 
@@ -397,6 +408,76 @@ def get_sealing_manifest_endpoint(
     """
     service = CaseFinalizationService(db)
     return service.get_sealing_manifest(case_id)
+
+
+# ============================================================================
+# Phase 18: Case Docket Judicial Admissibility & Verification Gateway
+# ============================================================================
+
+@router.post(
+    "/{case_id}/verify-admissibility",
+    response_model=CaseAdmissibilityResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Verify case docket judicial admissibility under BSA 2023 Section 63"
+)
+def verify_case_admissibility_endpoint(
+    case_id: str,
+    payload: Optional[CaseAdmissibilityRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Case Docket Judicial Admissibility & Cryptographic Verification Gateway (Phase 18):
+    Performs comprehensive, strictly read-only technical admissibility verification
+    under Section 63 of Bharatiya Sakshya Adhiniyam, 2023:
+    1. Validates docket finalization / sealing state.
+    2. Streaming SHA-256 verification of physical vault files.
+    3. Cryptographically audits custody chains from genesis through DOCKET_SEALED.
+    4. Deterministically recomputes and matches Phase 17 docket sealing manifest hash.
+    5. Validates court report artifact integrity.
+    6. Emits exactly one CASE_ADMISSIBILITY_VERIFIED audit event.
+    """
+    service = AdmissibilityService(db)
+    return service.verify_case_admissibility(case_id, current_user, payload=payload)
+
+
+@router.post(
+    "/{case_id}/judicial-verification",
+    response_model=CaseAdmissibilityResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Verify case docket judicial admissibility under BSA 2023 (alias)"
+)
+def judicial_verification_alias_endpoint(
+    case_id: str,
+    payload: Optional[CaseAdmissibilityRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Case Docket Judicial Verification Alias (Phase 18).
+    """
+    service = AdmissibilityService(db)
+    return service.verify_case_admissibility(case_id, current_user, payload=payload)
+
+
+@router.get(
+    "/{case_id}/admissibility-certificate",
+    response_model=AdmissibilityCertificateResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve official judicial admissibility certificate for a case docket"
+)
+def get_admissibility_certificate_endpoint(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Judicial Admissibility Certificate Query (Phase 18):
+    Returns recorded admissibility determination and cryptographic check breakdown.
+    """
+    service = AdmissibilityService(db)
+    return service.get_admissibility_certificate(case_id, current_user)
+
 
 
 

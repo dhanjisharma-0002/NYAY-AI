@@ -20,6 +20,7 @@ from .case_intelligence_service import CaseIntelligenceService
 from .dashboard_service import DashboardService
 from .pipeline_batch_service import PipelineBatchService
 from .case_finalization_service import CaseFinalizationService
+from .admissibility_service import AdmissibilityService
 
 __all__ = [
     "BaseService",
@@ -28,6 +29,7 @@ __all__ = [
     "DashboardService",
     "PipelineBatchService",
     "CaseFinalizationService",
+    "AdmissibilityService",
     "EvidenceService",
     "ForensicService",
     "AIService",

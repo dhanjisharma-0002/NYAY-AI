@@ -1274,6 +1274,110 @@ Once a case docket reaches `COMPLETED` or `ARCHIVED` status:
 - All evidence upload routes (`POST /api/evidence/upload` and `POST /api/cases/{case_id}/evidence`) block new intake with `400 Bad Request` (`error_code: CASE_SEALED`).
 - Terminal `DOCKET_SEALED` custody blocks prevent further unauthorized state alterations.
 
+---
+
+## 14. Case Docket Judicial Admissibility & Verification Gateway (Phase 18)
+
+### 14.1 Overview & Endpoint Specification
+Provides a strictly read-only, non-mutating judicial verification gateway that evaluates whether a sealed case docket satisfies technical evidentiary admissibility standards under Section 63 of Bharatiya Sakshya Adhiniyam, 2023 (BSA 2023) and ISO/IEC 27037:
+1. Re-computes streaming SHA-256 hashes of all physical evidence files in WORM storage against registered baselines.
+2. Cryptographically verifies every custody event chain from genesis block through `DOCKET_SEALED`.
+3. Deterministically recalculates the Phase 17 docket sealing manifest hash to detect post-sealing alterations.
+4. Audits the authenticity and integrity of official court admissibility reports.
+5. Emits exactly one `CASE_ADMISSIBILITY_VERIFIED` audit log per verification run.
+6. Strictly preserves evidence baseline hashes and case status without mutating the docket.
+
+- **Endpoint (Canonical)**: `POST /cases/{case_id}/verify-admissibility`
+- **Endpoint (Alias)**: `POST /cases/{case_id}/judicial-verification`
+- **Admissibility Certificate Query**: `GET /cases/{case_id}/admissibility-certificate`
+- **Router Prefix**: Exposed on both `/api/cases` and `/api/v1/cases`
+- **Method**: `POST` (verification), `GET` (certificate query)
+- **Authorization**: Bearer JWT (`JUDGE`, `ADMIN`, `AUDITOR`, `SYSTEM_LEAD`, `LAWYER`, `INVESTIGATOR`).
+  - `INVESTIGATOR`: Scoped strictly to owned/assigned cases (`created_by == current_user.id`).
+  - `JUDGE`, `ADMIN`, `AUDITOR`, `SYSTEM_LEAD`, `LAWYER`: Authorized docket verification roles.
+
+### 14.2 Technical Admissibility Status Outcomes
+Determines technical verification outcomes (distinct from judicial legal determinations):
+- `ADMISSIBLE`: All vaulted evidence files match SHA-256 baselines, all custody chains are intact, sealing manifest hash matches live state, and authentic court report exists.
+- `INADMISSIBLE_TAMPERED`: Physical evidence vault file content differs from original ingested SHA-256 hash or is missing from storage.
+- `CHAIN_OF_CUSTODY_BREACHED`: One or more evidence items possess an altered or broken cryptographic custody chain.
+- `SEALING_HASH_MISMATCH`: Docket content altered post-sealing; recalculated manifest hash does not match sealed hash.
+- `UNSEALED`: Case docket is in `OPEN`, `UNDER_ANALYSIS`, or other non-finalized state.
+- `MISSING_COURT_REPORT`: Case docket lacks an official court-ready admissibility report artifact.
+- `EMPTY_CASE`: Case contains zero evidence artifacts.
+
+### 14.3 Request & Response Contract
+- **Request Body** (Optional `CaseAdmissibilityRequest`):
+  ```json
+  {
+    "court_bench": "Courtroom 3A, High Court of Judicature at Delhi",
+    "judicial_officer_name": "Hon'ble Justice S. K. Gupta",
+    "verification_notes": "Tendered as electronic evidence in trial proceedings under BSA Section 63."
+  }
+  ```
+
+- **Response** `200 OK` (`CaseAdmissibilityResponse`):
+  ```json
+  {
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "case_status": "COMPLETED",
+    "admissibility_status": "ADMISSIBLE",
+    "is_admissible": true,
+    "statutory_framework": "BSA_2023_SECTION_63",
+    "verified_at": "2026-09-29T16:30:00.000000Z",
+    "verifier": {
+      "user_id": "usr-judge-01",
+      "username": "judge_gupta",
+      "role": "JUDGE",
+      "judicial_officer_name": "Hon'ble Justice S. K. Gupta",
+      "court_bench": "Courtroom 3A, High Court of Judicature at Delhi"
+    },
+    "checks": {
+      "vault_integrity_passed": true,
+      "custody_chains_intact": true,
+      "sealing_hash_verified": true,
+      "court_reports_valid": true,
+      "total_evidence_verified": 2,
+      "compromised_evidence_count": 0,
+      "broken_custody_chains_count": 0,
+      "compromised_evidence_ids": [],
+      "broken_chain_evidence_ids": []
+    },
+    "sealing_verification": {
+      "is_sealed": true,
+      "expected_sealing_hash": "a9f8b7c6...",
+      "recalculated_sealing_hash": "a9f8b7c6...",
+      "hashes_match": true
+    },
+    "admissibility_summary": "All 2 evidence artifacts, cryptographic custody chains, and judicial sealing manifest are intact and compliant with Section 63 of Bharatiya Sakshya Adhiniyam, 2023.",
+    "evidence_items": [
+      {
+        "evidence_id": "EVD-2026-0001",
+        "original_filename": "extortion_screenshot.png",
+        "stored_hash": "e3b0c442...",
+        "vault_file_hash": "e3b0c442...",
+        "vault_integrity": "VERIFIED",
+        "custody_chain_intact": true,
+        "total_custody_events": 4
+      }
+    ],
+    "reports": [
+      {
+        "report_id": "REP-2026-0001",
+        "report_type": "PDF",
+        "stored_sha256": "f5e4d3...",
+        "vault_file_sha256": "f5e4d3...",
+        "is_valid": true
+      }
+    ]
+  }
+  ```
+
+- **Admissibility Certificate Response** `GET /cases/{case_id}/admissibility-certificate`:
+  Returns the official judicial admissibility certificate matching the `AdmissibilityCertificateResponse` schema.
+
+
 
 
 

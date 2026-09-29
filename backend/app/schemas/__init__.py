@@ -38,8 +38,18 @@ from .operational_view import OperationalCaseViewResponse, CriticalAlert, Pendin
 from .dashboard import OperationalDashboardResponse, UrgentCaseItem, EvidenceMetrics, PendingActionMetrics
 from .pipeline_batch import CaseBatchPipelineRequest, CaseBatchPipelineResponse
 from .case_finalization import CaseFinalizationRequest, CaseFinalizationResponse, DocketSealingManifestResponse
+from .admissibility import (
+    CaseAdmissibilityRequest,
+    CaseAdmissibilityResponse,
+    AdmissibilityCertificateResponse,
+    AdmissibilityStatusEnum
+)
 
 __all__ = [
+    "CaseAdmissibilityRequest",
+    "CaseAdmissibilityResponse",
+    "AdmissibilityCertificateResponse",
+    "AdmissibilityStatusEnum",
     "CaseFinalizationRequest",
     "CaseFinalizationResponse",
     "DocketSealingManifestResponse",
