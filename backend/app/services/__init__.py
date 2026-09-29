@@ -18,12 +18,14 @@ from .verification_service import VerificationService
 from .audit_service import AuditService
 from .case_intelligence_service import CaseIntelligenceService
 from .dashboard_service import DashboardService
+from .pipeline_batch_service import PipelineBatchService
 
 __all__ = [
     "BaseService",
     "CaseService",
     "CaseIntelligenceService",
     "DashboardService",
+    "PipelineBatchService",
     "EvidenceService",
     "ForensicService",
     "AIService",

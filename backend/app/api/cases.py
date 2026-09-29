@@ -21,9 +21,11 @@ from backend.app.schemas.cases import CaseCreateRequest, CaseUpdateRequest
 from backend.app.schemas.case_intelligence import CaseIntelligenceSummaryResponse
 from backend.app.schemas.operational_view import OperationalCaseViewResponse
 from backend.app.schemas.dashboard import OperationalDashboardResponse
+from backend.app.schemas.pipeline_batch import CaseBatchPipelineRequest, CaseBatchPipelineResponse
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
 from backend.app.services.dashboard_service import DashboardService
+from backend.app.services.pipeline_batch_service import PipelineBatchService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
@@ -281,6 +283,49 @@ def get_operational_case_view_alias(
     """
     service = CaseIntelligenceService(db)
     return service.get_operational_case_view(case_id)
+
+
+@router.post(
+    "/{case_id}/process-pipeline",
+    response_model=CaseBatchPipelineResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Batch execute analysis pipeline across pending evidence in case docket"
+)
+def process_case_pipeline(
+    case_id: str,
+    payload: Optional[CaseBatchPipelineRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_creator)
+):
+    """
+    Case Docket Batch Pipeline Orchestrator (Phase 16):
+    Sequentially processes pending unanalyzed evidence through the forensic,
+    AI screening, legal explainability, and cryptographic custody chain.
+    """
+    force_reanalysis = payload.force_reanalysis if payload else False
+    service = PipelineBatchService(db)
+    return service.process_case_pipeline(case_id, current_user, force_reanalysis=force_reanalysis)
+
+
+@router.post(
+    "/{case_id}/run-analysis",
+    response_model=CaseBatchPipelineResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Batch execute analysis pipeline across pending evidence in case docket (alias)"
+)
+def run_case_analysis_alias(
+    case_id: str,
+    payload: Optional[CaseBatchPipelineRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_creator)
+):
+    """
+    Case Docket Batch Pipeline Orchestrator Alias (Phase 16).
+    """
+    force_reanalysis = payload.force_reanalysis if payload else False
+    service = PipelineBatchService(db)
+    return service.process_case_pipeline(case_id, current_user, force_reanalysis=force_reanalysis)
+
 
 
 

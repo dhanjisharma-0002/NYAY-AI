@@ -36,6 +36,7 @@ from .verification import VerificationResponse
 from .case_intelligence import CaseIntelligenceSummaryResponse
 from .operational_view import OperationalCaseViewResponse, CriticalAlert, PendingAction, FindingsSummary, SummaryMetrics
 from .dashboard import OperationalDashboardResponse, UrgentCaseItem, EvidenceMetrics, PendingActionMetrics
+from .pipeline_batch import CaseBatchPipelineRequest, CaseBatchPipelineResponse
 
 __all__ = [
     "APIResponse",
@@ -57,6 +58,8 @@ __all__ = [
     "UrgentCaseItem",
     "EvidenceMetrics",
     "PendingActionMetrics",
+    "CaseBatchPipelineRequest",
+    "CaseBatchPipelineResponse",
     "EvidenceResponse",
     "EvidenceListResponse",
     "EvidenceUploadResponse",

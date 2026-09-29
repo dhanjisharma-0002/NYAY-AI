@@ -1141,6 +1141,51 @@ Cases are included in `urgent_cases` if they possess one or more active `HIGH` a
 - **Zero N+1 Queries**: Aggregation is computed via batch queries over `Case`, `Evidence`, `EvidenceMetadata`, `AnalysisResult`, `CustodyEvent`, `Report`, and `VerificationRecord`.
 - Zero calls to `get_case_intelligence_summary` or `get_operational_case_view`.
 
+---
+
+## 12. Case Docket Batch Pipeline Orchestrator (Phase 16)
+
+### 12.1 Overview & Endpoint Specification
+Executes automated end-to-end evidence processing (forensic metadata extraction, AI tamper screening, legal explainability, and cryptographic chain of custody logging) across all pending evidence items in a case docket. Resolves pending actions surfaced in Phase 14 & 15.
+
+- **Endpoint (Canonical)**: `POST /cases/{case_id}/process-pipeline`  
+- **Endpoint (Alias)**: `POST /cases/{case_id}/run-analysis`  
+- **Router Prefix**: Exposed on both `/api/cases` and `/api/v1/cases`  
+- **Method**: `POST`  
+- **Authorization**: Bearer JWT (`INVESTIGATOR`, `ADMIN`, `SYSTEM_LEAD`).  
+  - `INVESTIGATOR`: Scoped strictly to assigned/owned cases (`created_by == current_user.id`).  
+  - `ADMIN`, `SYSTEM_LEAD`: Broad docket execution authority.
+
+### 12.2 Request & Response Contract
+- **Request Body** (Optional):
+  ```json
+  {
+    "force_reanalysis": false
+  }
+  ```
+
+- **Response** `200 OK` (`CaseBatchPipelineResponse`):
+  ```json
+  {
+    "case_id": "CASE-2026-A1B2C3D4",
+    "total_items": 4,
+    "processed_count": 3,
+    "anomalies_detected": 1,
+    "tamper_detected_count": 1,
+    "compromised_count": 0,
+    "new_case_status": "UNDER_ANALYSIS"
+  }
+  ```
+
+### 12.3 Execution Guarantees
+1. **Idempotency**: By default (`force_reanalysis = false`), skips items that already possess both forensic metadata and AI analysis records. Calling the endpoint repeatedly on an already-processed docket returns `processed_count = 0`.
+2. **Pre-Analysis Vault Verification**: Re-verifies file SHA-256 against registered baseline before invoking analysis engines.
+3. **Fault-Tolerant Failure Handling**: On hash tampering or storage error, marks individual evidence item (`INTEGRITY_COMPROMISED` or `STORAGE_ERROR`) and records custody exception without aborting the batch.
+4. **Cryptographic Custody Continuity**: Accurately chains each evidence event block to the latest existing block for that evidence.
+5. **Lifecycle State Transition**: Transitions case status from `OPEN` to `UNDER_ANALYSIS` once at least one item is processed.
+6. **Consolidated Audit Trail**: Emits exactly one `CASE_PIPELINE_BATCH_EXECUTED` audit event per batch execution.
+
+
 
 
 
