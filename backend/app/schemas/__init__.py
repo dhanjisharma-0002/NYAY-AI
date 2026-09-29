@@ -44,8 +44,18 @@ from .admissibility import (
     AdmissibilityCertificateResponse,
     AdmissibilityStatusEnum
 )
+from .export_bundle import (
+    ExportBundleRequest,
+    ExportBundleResponse,
+    BundleManifestResponse,
+    BundleArtifactItem
+)
 
 __all__ = [
+    "ExportBundleRequest",
+    "ExportBundleResponse",
+    "BundleManifestResponse",
+    "BundleArtifactItem",
     "CaseAdmissibilityRequest",
     "CaseAdmissibilityResponse",
     "AdmissibilityCertificateResponse",

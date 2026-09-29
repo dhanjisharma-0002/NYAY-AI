@@ -12,6 +12,7 @@ Enforces strict role-based access control ('Only authorized users should access 
 
 from typing import List, Optional
 from fastapi import APIRouter, Depends, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
@@ -32,12 +33,18 @@ from backend.app.schemas.admissibility import (
     CaseAdmissibilityResponse,
     AdmissibilityCertificateResponse
 )
+from backend.app.schemas.export_bundle import (
+    ExportBundleRequest,
+    ExportBundleResponse,
+    BundleManifestResponse
+)
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
 from backend.app.services.dashboard_service import DashboardService
 from backend.app.services.pipeline_batch_service import PipelineBatchService
 from backend.app.services.case_finalization_service import CaseFinalizationService
 from backend.app.services.admissibility_service import AdmissibilityService
+from backend.app.services.export_bundle_service import ExportBundleService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
@@ -477,6 +484,93 @@ def get_admissibility_certificate_endpoint(
     """
     service = AdmissibilityService(db)
     return service.get_admissibility_certificate(case_id, current_user)
+
+
+# ============================================================================
+# Phase 19: Case Docket Judicial Discovery & Cryptographic Export Bundle Gateway
+# ============================================================================
+
+@router.post(
+    "/{case_id}/export-bundle",
+    response_model=ExportBundleResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Generate judicial discovery and cryptographic export bundle"
+)
+def export_case_bundle_endpoint(
+    case_id: str,
+    payload: Optional[ExportBundleRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Case Docket Judicial Discovery & Cryptographic Export Bundle Gateway (Phase 19):
+    Packages finalized and admissibility-verified case docket into a standardized,
+    offline-verifiable digital evidence discovery archive (.zip) with deterministic root checksum.
+    """
+    service = ExportBundleService(db)
+    return service.export_case_bundle(case_id, current_user, payload=payload)
+
+
+@router.post(
+    "/{case_id}/create-disclosure-package",
+    response_model=ExportBundleResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Generate judicial discovery and cryptographic export bundle (alias)"
+)
+def create_disclosure_package_alias_endpoint(
+    case_id: str,
+    payload: Optional[ExportBundleRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Case Docket Judicial Discovery Package Alias (Phase 19).
+    """
+    service = ExportBundleService(db)
+    return service.export_case_bundle(case_id, current_user, payload=payload)
+
+
+@router.get(
+    "/{case_id}/export-bundle/manifest",
+    response_model=BundleManifestResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Inspect judicial discovery bundle manifest and root checksum"
+)
+def get_bundle_manifest_endpoint(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Discovery Bundle Manifest Inspection (Phase 19):
+    Inspects bundle metadata, individual constituent hashes, and root SHA-256 without downloading.
+    """
+    service = ExportBundleService(db)
+    return service.get_bundle_manifest(case_id, current_user)
+
+
+@router.get(
+    "/{case_id}/download-bundle",
+    summary="Download complete judicial discovery and disclosure bundle (.zip)"
+)
+def download_bundle_endpoint(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Binary Bundle Streaming Download (Phase 19):
+    Streams the verified digital evidence discovery archive (.zip) with proper attachment headers.
+    """
+    service = ExportBundleService(db)
+    bundle_path, bundle_filename = service.get_bundle_file_for_download(case_id, current_user)
+    return FileResponse(
+        path=bundle_path,
+        media_type="application/zip",
+        filename=bundle_filename,
+        headers={"Content-Disposition": f'attachment; filename="{bundle_filename}"'}
+    )
+
 
 
 

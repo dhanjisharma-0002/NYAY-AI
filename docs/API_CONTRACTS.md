@@ -1377,6 +1377,141 @@ Determines technical verification outcomes (distinct from judicial legal determi
 - **Admissibility Certificate Response** `GET /cases/{case_id}/admissibility-certificate`:
   Returns the official judicial admissibility certificate matching the `AdmissibilityCertificateResponse` schema.
 
+---
+
+## 15. Case Docket Judicial Discovery & Cryptographic Export Bundle Gateway (Phase 19)
+
+### 15.1 Overview & Endpoint Specification
+Provides a self-contained, air-gap verifiable Digital Evidence Bag and Judicial Disclosure Package (`.zip`) under Section 63 of Bharatiya Sakshya Adhiniyam, 2023 (BSA 2023) and Section 230 / Section 238 of Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS 2023 for statutory supply of electronic records to court and defense counsel):
+1. Validates finalized/sealed state (`COMPLETED`).
+2. Performs full streaming SHA-256 integrity re-verification of all physical vault evidence files against baseline digests.
+3. Validates unbroken custody ledger history and official court admissibility report existence.
+4. Confirms Phase 18 judicial admissibility verification (`ADMISSIBLE`).
+5. Assembles all constituents deterministically on disk (NOT fully in memory).
+6. Computes a deterministic root checksum (`DISCOVERY_BUNDLE_CHECKSUM.sha256`) from alphabetically sorted artifact paths and hashes, unaffected by ZIP archive metadata or compression timestamps.
+7. Caches packages by `case_id + docket_sealing_hash` to avoid redundant recompression.
+8. Emits exactly one `CASE_BUNDLE_EXPORTED` audit log per new export.
+9. Strictly read-only: never modifies evidence baseline hashes, case status, custody events, or reports.
+
+- **Endpoint (Canonical)**: `POST /cases/{case_id}/export-bundle`
+- **Endpoint (Alias)**: `POST /cases/{case_id}/create-disclosure-package`
+- **Bundle Manifest Inspection**: `GET /cases/{case_id}/export-bundle/manifest`
+- **Download Stream**: `GET /cases/{case_id}/download-bundle`
+- **Router Prefix**: Exposed on both `/api/cases` and `/api/v1/cases`
+- **Method**: `POST` (generate package), `GET` (inspect manifest / stream download)
+- **Authorization**: Bearer JWT (`JUDGE`, `ADMIN`, `AUDITOR`, `SYSTEM_LEAD`, `LAWYER`, `INVESTIGATOR`).
+  - `INVESTIGATOR`: Scoped strictly to owned/assigned cases (`created_by == current_user.id`).
+  - `LAWYER`: Permitted to inspect manifest and download legal disclosure copies for assigned cases under statutory discovery (BNSS Sec 230).
+  - `JUDGE`, `ADMIN`, `AUDITOR`, `SYSTEM_LEAD`: Broad docket export and download authority.
+
+### 15.2 Discovery Bundle Archive Architecture
+```
+NYAYAI_DISCOVERY_BUNDLE_<case_number>_<sealing_hash[:16]>.zip
+├── manifest.json
+├── admissibility_certificate.json
+├── evidence/
+│   ├── <evidence_id_1>_<original_filename_1>
+│   └── <evidence_id_2>_<original_filename_2>
+├── custody/
+│   ├── custody_ledger.json
+│   └── events_timeline.json
+├── reports/
+│   ├── <report_id>.pdf
+│   └── reports_index.json
+├── audit/
+│   └── case_audit_trail.json
+└── DISCOVERY_BUNDLE_CHECKSUM.sha256
+```
+
+### 15.3 Request & Response Contract
+- **Request Body** (Optional `ExportBundleRequest`):
+  ```json
+  {
+    "purpose": "Trial Evidence Production under BSA Section 63",
+    "recipient_court_or_agency": "Court of Sessions, Patiala House Courts, New Delhi",
+    "authorized_officer_name": "Special Public Prosecutor R. K. Singh",
+    "notes": "Electronic evidence tender along with Section 63 certificate.",
+    "force_repackage": false
+  }
+  ```
+
+- **Response** `200 OK` (`ExportBundleResponse`):
+  ```json
+  {
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "bundle_filename": "NYAYAI_DISCOVERY_BUNDLE_CR-2026-0926-01_a6d73c017995c53d.zip",
+    "bundle_file_size": 245892,
+    "root_checksum": "9b7d8e6f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d",
+    "docket_sealing_hash": "a6d73c017995c53d48da431ce7478d7cf03435dee9e08bd9975d508bf89571e1",
+    "admissibility_status": "ADMISSIBLE",
+    "statutory_framework": "BSA_2023_SEC_63_BNSS_2023_SEC_230",
+    "exported_at": "2026-09-29T17:15:00.000000Z",
+    "exporter": {
+      "user_id": "usr-judge-01",
+      "username": "judge_gupta",
+      "role": "JUDGE",
+      "authorized_officer_name": "Special Public Prosecutor R. K. Singh",
+      "purpose": "Trial Evidence Production under BSA Section 63",
+      "recipient": "Court of Sessions, Patiala House Courts, New Delhi"
+    },
+    "total_artifacts": 8,
+    "cached": false,
+    "download_url": "/api/cases/CASE-2026-A1B2C3D4/download-bundle",
+    "artifacts": [
+      {
+        "path": "DISCOVERY_BUNDLE_CHECKSUM.sha256",
+        "artifact_type": "ROOT_CHECKSUM",
+        "file_size": 892,
+        "sha256": "4b5c6d..."
+      },
+      {
+        "path": "admissibility_certificate.json",
+        "artifact_type": "ADMISSIBILITY_CERTIFICATE",
+        "file_size": 2048,
+        "sha256": "1a2b3c..."
+      },
+      {
+        "path": "audit/case_audit_trail.json",
+        "artifact_type": "AUDIT_TRAIL",
+        "file_size": 3120,
+        "sha256": "8d7e6f..."
+      },
+      {
+        "path": "custody/custody_ledger.json",
+        "artifact_type": "CUSTODY_LEDGER",
+        "file_size": 4210,
+        "sha256": "3c4d5e..."
+      },
+      {
+        "path": "custody/events_timeline.json",
+        "artifact_type": "CUSTODY_TIMELINE",
+        "file_size": 2180,
+        "sha256": "9f8e7d..."
+      },
+      {
+        "path": "evidence/EVD-2026-0001_screenshot.png",
+        "artifact_type": "EVIDENCE",
+        "file_size": 45120,
+        "sha256": "e3b0c4..."
+      },
+      {
+        "path": "manifest.json",
+        "artifact_type": "BUNDLE_MANIFEST",
+        "file_size": 1540,
+        "sha256": "6b7c8d..."
+      },
+      {
+        "path": "reports/REP-2026-0001.pdf",
+        "artifact_type": "COURT_REPORT",
+        "file_size": 89400,
+        "sha256": "7a8b9c..."
+      }
+    ]
+  }
+  ```
+
+
 
 
 

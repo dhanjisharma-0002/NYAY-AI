@@ -21,6 +21,7 @@ from .dashboard_service import DashboardService
 from .pipeline_batch_service import PipelineBatchService
 from .case_finalization_service import CaseFinalizationService
 from .admissibility_service import AdmissibilityService
+from .export_bundle_service import ExportBundleService
 
 __all__ = [
     "BaseService",
@@ -30,6 +31,7 @@ __all__ = [
     "PipelineBatchService",
     "CaseFinalizationService",
     "AdmissibilityService",
+    "ExportBundleService",
     "EvidenceService",
     "ForensicService",
     "AIService",
