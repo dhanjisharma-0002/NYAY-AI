@@ -50,8 +50,22 @@ from .export_bundle import (
     BundleManifestResponse,
     BundleArtifactItem
 )
+from .bundle_verification import (
+    BundleVerificationStatusEnum,
+    ArtifactVerificationItem,
+    BundleVerificationChecks,
+    BundleVerificationResponse,
+    BundleManifestVerificationRequest,
+    BundleManifestVerificationResponse
+)
 
 __all__ = [
+    "BundleVerificationStatusEnum",
+    "ArtifactVerificationItem",
+    "BundleVerificationChecks",
+    "BundleVerificationResponse",
+    "BundleManifestVerificationRequest",
+    "BundleManifestVerificationResponse",
     "ExportBundleRequest",
     "ExportBundleResponse",
     "BundleManifestResponse",

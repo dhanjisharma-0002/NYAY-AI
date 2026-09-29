@@ -4,13 +4,20 @@ Module: backend.app.api.verification
 Lead: Dhananjay Sharma (Backend & System Integration Lead)
 """
 
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
+from backend.app.models.user import User
+from backend.app.core.security import get_current_user_optional
 from backend.app.schemas.verification import VerificationResponse, VerificationRecordOut
+from backend.app.schemas.bundle_verification import (
+    BundleManifestVerificationRequest,
+    BundleManifestVerificationResponse
+)
 from backend.app.services.verification_service import VerificationService
+from backend.app.services.bundle_verification_service import BundleVerificationService
 
 router = APIRouter(tags=["Public Verification"])
 
@@ -86,3 +93,23 @@ def get_report_verifications_history(
         )
         for r in records
     ]
+
+
+@router.post(
+    "/verification/bundle-manifest",
+    response_model=BundleManifestVerificationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Cryptographically verify discovery bundle manifest and root checksum"
+)
+def verify_bundle_manifest_endpoint(
+    payload: BundleManifestVerificationRequest,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """
+    Discovery Bundle Manifest Verification Gateway (Phase 20):
+    Allows air-gapped or lightweight cryptographic verification of discovery bundle manifest and
+    root checksum against authoritative case finalization and admissibility records.
+    """
+    service = BundleVerificationService(db)
+    return service.verify_bundle_manifest(payload, current_user=current_user)

@@ -1511,6 +1511,129 @@ NYAYAI_DISCOVERY_BUNDLE_<case_number>_<sealing_hash[:16]>.zip
   }
   ```
 
+---
+
+## 16. Judicial Discovery Bundle Cryptographic Verification & Tamper Audit Gateway (Phase 20)
+
+### 16.1 Overview & Endpoint Specification
+Provides offline, non-mutating cryptographic authenticity and tamper audit verification for exported Judicial Discovery Bundles (`.zip`) under Bharatiya Sakshya Adhiniyam, 2023 (BSA 2023) Section 63 and Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS 2023) Section 230 / Section 238:
+1. **Safe In-Memory Streaming Inspection**: Never extracts archives blindly to disk. Inspects entries via `ZipFile.open()` with strict 250 MB per-entry and 1 GB total uncompressed size limits (Zip bomb protection).
+2. **Zip-Slip & Path Traversal Prevention**: Strictly rejects paths with `..`, absolute paths, leading slashes, drive colons, or traversal sequences (`CORRUPTED_ARCHIVE`).
+3. **Artifact Hash Verification**: Verifies SHA-256 for every expected bundle constituent against `manifest.json`.
+4. **Deterministic Root Checksum Re-computation**: Reconstructs the canonical sorted `<sha256>  <archive_relative_path>` representation independent of ZIP timestamps and metadata, verifying `DISCOVERY_BUNDLE_CHECKSUM.sha256`.
+5. **Required Artifacts Audit**: Asserts presence and integrity of `manifest.json`, `admissibility_certificate.json`, `evidence/*`, `custody/*`, `reports/*`, `audit/*`, and `DISCOVERY_BUNDLE_CHECKSUM.sha256`.
+6. **Authoritative Docket Cross-Check**: Validates bundle `docket_sealing_hash` against authoritative Phase 17 registered sealing information (`AuditLog(action="CASE_FINALIZED")`), preventing acceptance of forged or foreign sealed dockets.
+7. **Phase 18 Section 63 Cross-Check**: Confirms enclosed admissibility certificate corresponds to the requested case and authoritative docket sealing state.
+8. **Technical Verification Determinations**:
+   - `BUNDLE_VERIFIED_AUTHENTIC`: All constituent hashes, custody ledgers, court reports, Section 63 admissibility certificate, and root checksum match authoritative sealed records.
+   - `BUNDLE_TAMPERED`: Constituent artifact SHA-256 divergence, missing mandatory files, or altered Section 63 admissibility certificate.
+   - `ROOT_CHECKSUM_MISMATCH`: Recomputed canonical root checksum does not match `DISCOVERY_BUNDLE_CHECKSUM.sha256` or authoritative export audit.
+   - `UNREGISTERED_SEALING_HASH`: Bundle sealing hash does not match registered case docket sealing manifest.
+   - `CORRUPTED_ARCHIVE`: Non-ZIP format, corrupt bytes, path traversal attempt, or size limit breach.
+9. **Single Audit Event**: Emits exactly one `CASE_BUNDLE_VERIFIED` audit log per verification request.
+10. **Strictly Read-Only**: Performs zero database mutations to evidence baselines, case status, custody, or reports.
+
+- **Endpoint (Canonical)**: `POST /cases/{case_id}/verify-bundle`
+- **Endpoint (Alias)**: `POST /cases/{case_id}/verify-disclosure-package`
+- **Air-Gap / Lightweight Manifest Endpoint**: `POST /verification/bundle-manifest`
+- **Router Prefixes**: Mounted at `/api/cases` and `/api/v1/cases`, and `/api/verification` and `/api/v1/verification`
+- **Authorization**:
+  - Full bundle upload: `JUDGE`, `ADMIN`, `AUDITOR`, `SYSTEM_LEAD`, `LAWYER`, and owning `INVESTIGATOR` (foreign investigator rejected with `403 Forbidden`).
+  - Manifest verification: Authenticated users enforce RBAC; unauthenticated verifiers are logged as `PUBLIC_VERIFIER`.
+
+### 16.2 Request & Response Contracts
+
+#### A. Full Archive Upload Verification (`POST /cases/{case_id}/verify-bundle`)
+- **Request**: Multipart Form Data
+  - `file`: Uploaded discovery `.zip` archive (Binary)
+  - `notes`: Optional auditor notes (String)
+
+- **Response** `200 OK` (`BundleVerificationResponse`):
+  ```json
+  {
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "verification_status": "BUNDLE_VERIFIED_AUTHENTIC",
+    "is_authentic": true,
+    "statutory_framework": "BSA_2023_SEC_63_BNSS_2023_SEC_230",
+    "verified_at": "2026-09-29T16:45:00.000000Z",
+    "verifier": {
+      "user_id": "usr-judge-01",
+      "username": "judge_gupta",
+      "role": "JUDGE",
+      "notes": "Verified by Judicial Magistrate prior to trial marking."
+    },
+    "checks": {
+      "archive_structure_valid": true,
+      "manifest_present": true,
+      "all_artifacts_intact": true,
+      "root_checksum_verified": true,
+      "sealing_hash_registered": true,
+      "admissibility_certified": true,
+      "total_artifacts_checked": 7,
+      "tampered_artifacts_count": 0,
+      "tampered_artifact_paths": []
+    },
+    "expected_sealing_hash": "a9f8b7c6...",
+    "bundle_sealing_hash": "a9f8b7c6...",
+    "expected_root_checksum": "5d4e3f2a...",
+    "computed_root_checksum": "5d4e3f2a...",
+    "verification_summary": "Judicial Discovery Package verified authentic under Section 63 of Bharatiya Sakshya Adhiniyam, 2023. All 7 artifacts, custody ledgers, reports, and root checksum match authoritative sealed records.",
+    "artifacts": [
+      {
+        "path": "evidence/EVD-2026-0001_screenshot.png",
+        "artifact_type": "EVIDENCE",
+        "expected_sha256": "e3b0c442...",
+        "computed_sha256": "e3b0c442...",
+        "matches": true,
+        "file_size": 45120
+      },
+      {
+        "path": "manifest.json",
+        "artifact_type": "BUNDLE_MANIFEST",
+        "expected_sha256": "6b7c8d9e...",
+        "computed_sha256": "6b7c8d9e...",
+        "matches": true,
+        "file_size": 1540
+      }
+    ]
+  }
+  ```
+
+#### B. Air-Gap / Lightweight Manifest Verification (`POST /verification/bundle-manifest`)
+- **Request Body** (`BundleManifestVerificationRequest`):
+  ```json
+  {
+    "case_id": "CASE-2026-A1B2C3D4",
+    "root_checksum": "5d4e3f2a1b0c...",
+    "docket_sealing_hash": "a9f8b7c6d5e4...",
+    "checksum_manifest_text": "# NYAY-AI CASE DOCKET DISCOVERY BUNDLE CHECKSUM MANIFEST\n...",
+    "notes": "Verified at court registry"
+  }
+  ```
+
+- **Response** `200 OK` (`BundleManifestVerificationResponse`):
+  ```json
+  {
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "verification_status": "BUNDLE_VERIFIED_AUTHENTIC",
+    "is_authentic": true,
+    "statutory_framework": "BSA_2023_SEC_63_BNSS_2023_SEC_230",
+    "verified_at": "2026-09-29T16:50:00.000000Z",
+    "verifier": {
+      "user_id": "usr-judge-01",
+      "username": "judge_gupta",
+      "role": "JUDGE",
+      "notes": "Verified at court registry"
+    },
+    "docket_sealing_hash_matches": true,
+    "root_checksum_matches": true,
+    "admissibility_status": "ADMISSIBLE",
+    "verification_summary": "Discovery bundle manifest and root checksum verified authentic against court docket records."
+  }
+  ```
+
 
 
 

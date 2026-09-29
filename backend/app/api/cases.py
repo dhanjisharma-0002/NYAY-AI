@@ -11,7 +11,7 @@ Enforces strict role-based access control ('Only authorized users should access 
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, File, Form, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -38,6 +38,7 @@ from backend.app.schemas.export_bundle import (
     ExportBundleResponse,
     BundleManifestResponse
 )
+from backend.app.schemas.bundle_verification import BundleVerificationResponse
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
 from backend.app.services.dashboard_service import DashboardService
@@ -45,6 +46,7 @@ from backend.app.services.pipeline_batch_service import PipelineBatchService
 from backend.app.services.case_finalization_service import CaseFinalizationService
 from backend.app.services.admissibility_service import AdmissibilityService
 from backend.app.services.export_bundle_service import ExportBundleService
+from backend.app.services.bundle_verification_service import BundleVerificationService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
@@ -570,6 +572,47 @@ def download_bundle_endpoint(
         filename=bundle_filename,
         headers={"Content-Disposition": f'attachment; filename="{bundle_filename}"'}
     )
+
+
+@router.post(
+    "/{case_id}/verify-bundle",
+    response_model=BundleVerificationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Cryptographically verify judicial discovery bundle archive (.zip)"
+)
+def verify_bundle_endpoint(
+    case_id: str,
+    file: UploadFile = File(..., description="Uploaded judicial discovery bundle (.zip)"),
+    notes: Optional[str] = Form(None, description="Auditor verification notes"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Judicial Discovery Bundle Cryptographic Verification & Tamper Audit Gateway (Phase 20):
+    Safely inspects and cryptographically audits an uploaded discovery .zip archive under BSA 2023 Section 63.
+    """
+    service = BundleVerificationService(db)
+    return service.verify_uploaded_bundle(case_id, file, current_user, notes=notes)
+
+
+@router.post(
+    "/{case_id}/verify-disclosure-package",
+    response_model=BundleVerificationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Cryptographically verify judicial discovery bundle archive (alias)"
+)
+def verify_disclosure_package_alias_endpoint(
+    case_id: str,
+    file: UploadFile = File(..., description="Uploaded judicial discovery bundle (.zip)"),
+    notes: Optional[str] = Form(None, description="Auditor verification notes"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_admissibility_verifier)
+):
+    """
+    Judicial Discovery Package Verification Alias (Phase 20).
+    """
+    service = BundleVerificationService(db)
+    return service.verify_uploaded_bundle(case_id, file, current_user, notes=notes)
 
 
 
