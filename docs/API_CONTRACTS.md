@@ -1058,5 +1058,89 @@ Deterministic boolean flag:
 ### 10.6 404 Not Found Behavior
 If `case_id` is not found, standard `CASE_NOT_FOUND` response with status `404 Not Found` is returned identical to Section 9.3.
 
+---
+
+## 11. Investigator Portfolio Operational Dashboard (Phase 15)
+
+### 11.1 Overview & Endpoint Specification
+Provides a cross-case operational dashboard and portfolio overview. Aggregates portfolio health, evidence metrics, pending actions, and urgent cases across all accessible case dockets deterministically without N+1 query amplification.
+
+- **Endpoint (Canonical)**: `GET /cases/operational-dashboard`  
+- **Endpoint (Alias)**: `GET /cases/portfolio-overview`  
+- **Router Prefix**: Exposed on both `/api/cases` and `/api/v1/cases`  
+- **Method**: `GET` (Strictly read-only; zero database mutations, no audit event generation, no state changes)  
+- **Authorization**: Bearer JWT. Reuses existing case viewer RBAC (`auth_case_viewer`).  
+  - `INVESTIGATOR`: Only accessible/owned/assigned cases (`created_by == current_user.id`).  
+  - `ADMIN`, `JUDGE`, `AUDITOR`, `SYSTEM_LEAD`, `LAWYER`, `FORENSIC_EXPERT`: Broader system-wide case visibility.
+
+### 11.2 Response Schema & Contract
+Returns `200 OK` with `OperationalDashboardResponse`:
+
+```json
+{
+  "total_cases": 12,
+  "status_counts": {
+    "OPEN": 3,
+    "UNDER_ANALYSIS": 5,
+    "COMPLETED": 4,
+    "ARCHIVED": 0
+  },
+  "cases_requiring_attention": 4,
+  "urgent_cases": [
+    {
+      "case_id": "CASE-2026-A1B2C3D4",
+      "case_number": "CR-2026-0926-01",
+      "title": "State v. Extortion Syndicate",
+      "status": "UNDER_ANALYSIS",
+      "high_alert_types": [
+        "INTEGRITY_COMPROMISED",
+        "BROKEN_CUSTODY_CHAIN"
+      ]
+    },
+    {
+      "case_id": "CASE-2026-E5F6G7H8",
+      "case_number": "CR-2026-0926-02",
+      "title": "State v. Deepfake Impersonation",
+      "status": "UNDER_ANALYSIS",
+      "high_alert_types": [
+        "AI_TAMPER_DETECTED"
+      ]
+    }
+  ],
+  "evidence_metrics": {
+    "total": 35,
+    "verified": 28,
+    "compromised": 4,
+    "storage_errors": 3
+  },
+  "pending_actions": {
+    "forensic_analysis": 6,
+    "ai_analysis": 8,
+    "court_reports": 2
+  }
+}
+```
+
+### 11.3 Urgent Cases Derivation
+Cases are included in `urgent_cases` if they possess one or more active `HIGH` alerts as defined in Phase 14:
+- `INTEGRITY_COMPROMISED`: Any evidence item with `status == "INTEGRITY_COMPROMISED"` (cryptographic hash mismatch).
+- `BROKEN_CUSTODY_CHAIN`: Any evidence item where cryptographic chain of custody verification failed (`chain_intact == false`).
+- `AI_TAMPER_DETECTED`: Any evidence item where AI analysis detected media tampering / deepfake artifacts.
+- `TAMPERED_REPORT_VERIFICATION`: Any court report verification recording tamper status (`TAMPER_DETECTED`, `INVALID`, `TAMPERED`).
+
+### 11.4 Evidence & Pending Action Metrics
+- `evidence_metrics.total`: Total evidence items across accessible cases.
+- `evidence_metrics.verified`: Evidence items with status `VERIFIED`.
+- `evidence_metrics.compromised`: Evidence items with status `INTEGRITY_COMPROMISED`.
+- `evidence_metrics.storage_errors`: Evidence items with status `STORAGE_ERROR`.
+- `pending_actions.forensic_analysis`: Evidence items lacking structural/metadata inspection records (`EvidenceMetadata`).
+- `pending_actions.ai_analysis`: Evidence items lacking AI screening results (`AnalysisResult`).
+- `pending_actions.court_reports`: Cases with intact evidence (`total_evidence > 0`, zero compromised evidence, zero broken custody chains) where no court admissibility certificate has yet been issued (`total_reports == 0`).
+
+### 11.5 Performance & Query Constraints
+- **Zero N+1 Queries**: Aggregation is computed via batch queries over `Case`, `Evidence`, `EvidenceMetadata`, `AnalysisResult`, `CustodyEvent`, `Report`, and `VerificationRecord`.
+- Zero calls to `get_case_intelligence_summary` or `get_operational_case_view`.
+
+
 
 

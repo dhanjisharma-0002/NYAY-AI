@@ -20,8 +20,10 @@ from backend.app.core.security import require_roles
 from backend.app.schemas.cases import CaseCreateRequest, CaseUpdateRequest
 from backend.app.schemas.case_intelligence import CaseIntelligenceSummaryResponse
 from backend.app.schemas.operational_view import OperationalCaseViewResponse
+from backend.app.schemas.dashboard import OperationalDashboardResponse
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
+from backend.app.services.dashboard_service import DashboardService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
@@ -99,6 +101,42 @@ def list_cases(
         "total": len(items),
         "data": items
     }
+
+
+@router.get(
+    "/operational-dashboard",
+    response_model=OperationalDashboardResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve investigator portfolio operational dashboard"
+)
+def get_operational_dashboard(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Investigator Portfolio Operational Dashboard (Phase 15):
+    Cross-case operational dashboard aggregating portfolio health, evidence metrics,
+    pending actions, and urgent cases deterministically without N+1 queries.
+    """
+    service = DashboardService(db)
+    return service.get_portfolio_dashboard(current_user)
+
+
+@router.get(
+    "/portfolio-overview",
+    response_model=OperationalDashboardResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve investigator portfolio operational dashboard (alias)"
+)
+def get_portfolio_overview(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Investigator Portfolio Operational Dashboard Alias (Phase 15).
+    """
+    service = DashboardService(db)
+    return service.get_portfolio_dashboard(current_user)
 
 
 @router.get("/{case_id}", status_code=status.HTTP_200_OK, summary="Retrieve case details by ID")

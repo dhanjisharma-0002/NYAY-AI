@@ -17,11 +17,13 @@ from .integrity_service import EvidenceIntegrityService
 from .verification_service import VerificationService
 from .audit_service import AuditService
 from .case_intelligence_service import CaseIntelligenceService
+from .dashboard_service import DashboardService
 
 __all__ = [
     "BaseService",
     "CaseService",
     "CaseIntelligenceService",
+    "DashboardService",
     "EvidenceService",
     "ForensicService",
     "AIService",
