@@ -70,7 +70,7 @@ class AIAnalysisItemSummary(BaseModel):
     confidence: float = 0.0
     risk_score: float = 0.0
     tamper_detected: bool = False
-    findings: List[str] = Field(default_factory=list)
+    findings: List[Any] = Field(default_factory=list)
     model_name: Optional[str] = None
     model_version: Optional[str] = None
 

@@ -19,6 +19,7 @@ from backend.app.models.user import User
 from backend.app.core.security import require_roles
 from backend.app.schemas.cases import CaseCreateRequest, CaseUpdateRequest
 from backend.app.schemas.case_intelligence import CaseIntelligenceSummaryResponse
+from backend.app.schemas.operational_view import OperationalCaseViewResponse
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
 
@@ -204,4 +205,44 @@ def get_case_intelligence_summary(
     """
     service = CaseIntelligenceService(db)
     return service.get_case_intelligence_summary(case_id)
+
+
+@router.get(
+    "/{case_id}/operational-view",
+    response_model=OperationalCaseViewResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve investigator operational case view"
+)
+def get_operational_case_view(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Investigator Operational Case View (Phase 14):
+    Provides actionable triage information, critical alerts, pending actions,
+    and key investigation metrics on top of the Phase 13 Case Intelligence Summary.
+    """
+    service = CaseIntelligenceService(db)
+    return service.get_operational_case_view(case_id)
+
+
+@router.get(
+    "/{case_id}/overview",
+    response_model=OperationalCaseViewResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve investigator operational case view (alias)"
+)
+def get_operational_case_view_alias(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Investigator Operational Case View Alias (Phase 14).
+    """
+    service = CaseIntelligenceService(db)
+    return service.get_operational_case_view(case_id)
+
+
 

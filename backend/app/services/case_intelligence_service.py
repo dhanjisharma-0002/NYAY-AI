@@ -168,7 +168,11 @@ class CaseIntelligenceService(BaseService):
         total_risk_score = 0.0
 
         for r in analysis_records:
-            is_tamper = r.tamper_detected or (r.prediction and "TAMPER" in str(r.prediction).upper())
+            pred_str = str(r.prediction).upper() if r.prediction else ""
+            if "NO_TAMPER" in pred_str or "AUTHENTIC" in pred_str or "CLEAN" in pred_str:
+                is_tamper = False
+            else:
+                is_tamper = bool(r.tamper_detected or ("TAMPER" in pred_str))
             if is_tamper:
                 tamper_detected_count += 1
             total_risk_score += (r.risk_score or 0.0)
@@ -382,3 +386,184 @@ class CaseIntelligenceService(BaseService):
             "audit": audit_summary,
             "overall_status": overall_status
         }
+
+    def get_operational_case_view(self, case_id: str) -> Dict[str, Any]:
+        """
+        Derives an actionable investigator operational case view on top of the
+        Phase 13 Case Intelligence Summary.
+
+        Computes deterministic:
+        1. attention_required (bool)
+        2. critical_alerts (list of alerts: INTEGRITY_COMPROMISED, STORAGE_ERROR, BROKEN_CUSTODY_CHAIN, AI_TAMPER_DETECTED, FORENSIC_ANOMALY, CORRELATION_RED_FLAG, TAMPERED_REPORT_VERIFICATION)
+        3. pending_actions (list of operational next steps: REVIEW_INTEGRITY_COMPROMISE, VERIFY_CUSTODY_CHAIN, PENDING_FORENSIC_ANALYSIS, PENDING_AI_ANALYSIS, REVIEW_CORRELATION_RED_FLAGS, GENERATE_COURT_REPORT)
+        4. findings_summary (validated_findings, anomalous_findings, red_flags)
+        5. summary_metrics (total_evidence, verified_evidence, compromised_evidence, analyzed_evidence, active_red_flags, reports_generated)
+        6. intelligence_summary (full Phase 13 response)
+        """
+        summary = self.get_case_intelligence_summary(case_id)
+
+        case_info = summary["case"]
+        evidence_sec = summary["evidence"]
+        integrity_sec = summary["integrity"]
+        forensic_sec = summary["forensic"]
+        ai_sec = summary["ai_analysis"]
+        correlation_sec = summary["correlation"]
+        custody_sec = summary["custody"]
+        reports_sec = summary["reports"]
+        verif_sec = summary["verification"]
+
+        critical_alerts: List[Dict[str, Any]] = []
+        pending_actions: List[Dict[str, Any]] = []
+
+        # 1. Critical Alerts Derivation
+        # A. Integrity Compromise & Storage Error Alert
+        for e in evidence_sec["items"]:
+            if e["status"] == "INTEGRITY_COMPROMISED":
+                critical_alerts.append({
+                    "alert_type": "INTEGRITY_COMPROMISED",
+                    "severity": "HIGH",
+                    "resource_id": e["evidence_id"],
+                    "description": f"Evidence '{e['original_filename']}' cryptographic integrity is compromised (SHA-256 mismatch)."
+                })
+            elif e["status"] == "STORAGE_ERROR":
+                critical_alerts.append({
+                    "alert_type": "STORAGE_ERROR",
+                    "severity": "MEDIUM",
+                    "resource_id": e["evidence_id"],
+                    "description": f"Evidence '{e['original_filename']}' encountered a storage access or missing file error."
+                })
+
+        # B. Broken Custody Chain Alert
+        for chain in custody_sec["evidence_chains"]:
+            if not chain["chain_intact"]:
+                critical_alerts.append({
+                    "alert_type": "BROKEN_CUSTODY_CHAIN",
+                    "severity": "HIGH",
+                    "resource_id": chain["evidence_id"],
+                    "description": f"Cryptographic chain of custody verification failed for evidence '{chain['evidence_id']}'."
+                })
+
+        # C. AI Tamper Detected Alert
+        for ai_item in ai_sec["items"]:
+            if ai_item.get("tamper_detected"):
+                critical_alerts.append({
+                    "alert_type": "AI_TAMPER_DETECTED",
+                    "severity": "HIGH",
+                    "resource_id": ai_item["evidence_id"],
+                    "description": f"AI screening detected potential media tampering/splicing on evidence '{ai_item['evidence_id']}'."
+                })
+
+        # D. Forensic Anomaly Alert
+        for f_item in forensic_sec["items"]:
+            if f_item.get("anomalies_count", 0) > 0 or not f_item.get("format_valid", True):
+                anom_desc = ", ".join(f_item.get("anomalies", [])) if f_item.get("anomalies") else "Format specification mismatch."
+                critical_alerts.append({
+                    "alert_type": "FORENSIC_ANOMALY",
+                    "severity": "MEDIUM",
+                    "resource_id": f_item["evidence_id"],
+                    "description": f"Forensic structural anomalies detected in evidence '{f_item['evidence_id']}': {anom_desc}"
+                })
+
+        # E. Correlation Red Flags Alert
+        for rf in correlation_sec["red_flags"]:
+            res_id = rf.get("evidence_id") or (rf.get("evidence_reference", {}).get("evidence_id") if isinstance(rf.get("evidence_reference"), dict) else None) or rf.get("flag_id") or case_id
+            critical_alerts.append({
+                "alert_type": "CORRELATION_RED_FLAG",
+                "severity": "MEDIUM",
+                "resource_id": str(res_id),
+                "description": rf.get("description", "Correlation anomaly detected.")
+            })
+
+        # F. Tampered Report Verification Alert
+        for v in verif_sec["recent_verifications"]:
+            if v.get("status") in ("TAMPER_DETECTED", "INVALID", "TAMPERED"):
+                critical_alerts.append({
+                    "alert_type": "TAMPERED_REPORT_VERIFICATION",
+                    "severity": "HIGH",
+                    "resource_id": v["report_id"],
+                    "description": f"Public QR/cryptographic verification detected tampering on report '{v['report_id']}'."
+                })
+
+        # 2. Pending Actions Derivation
+        inspected_ids = {f["evidence_id"] for f in forensic_sec["items"]}
+        analyzed_ids = {a["evidence_id"] for a in ai_sec["items"]}
+
+        for e in evidence_sec["items"]:
+            ev_id = e["evidence_id"]
+            if e["status"] == "INTEGRITY_COMPROMISED":
+                pending_actions.append({
+                    "action_type": "REVIEW_INTEGRITY_COMPROMISE",
+                    "resource_id": ev_id,
+                    "description": f"Review cryptographic hash mismatch and chain breach for evidence '{ev_id}'."
+                })
+            if ev_id not in inspected_ids:
+                pending_actions.append({
+                    "action_type": "PENDING_FORENSIC_ANALYSIS",
+                    "resource_id": ev_id,
+                    "description": f"Evidence '{e['original_filename']}' requires forensic metadata and byte structure inspection."
+                })
+            if ev_id not in analyzed_ids:
+                pending_actions.append({
+                    "action_type": "PENDING_AI_ANALYSIS",
+                    "resource_id": ev_id,
+                    "description": f"Evidence '{e['original_filename']}' requires AI tamper detection and screening."
+                })
+
+        for chain in custody_sec["evidence_chains"]:
+            if not chain["chain_intact"]:
+                pending_actions.append({
+                    "action_type": "VERIFY_CUSTODY_CHAIN",
+                    "resource_id": chain["evidence_id"],
+                    "description": f"Re-audit broken chain of custody blocks for evidence '{chain['evidence_id']}'."
+                })
+
+        if correlation_sec["red_flags_count"] > 0:
+            pending_actions.append({
+                "action_type": "REVIEW_CORRELATION_RED_FLAGS",
+                "resource_id": case_id,
+                "description": f"{correlation_sec['red_flags_count']} active cross-evidence correlation red flag(s) require investigator review."
+            })
+
+        if evidence_sec["total_count"] > 0 and reports_sec["total_reports"] == 0 and integrity_sec["compromised_count"] == 0 and custody_sec["all_chains_intact"]:
+            pending_actions.append({
+                "action_type": "GENERATE_COURT_REPORT",
+                "resource_id": case_id,
+                "description": f"All evidence artifacts are intact. Court admissibility certificate (BSA 2023) has not yet been generated for case '{case_id}'."
+            })
+
+        # 3. Attention Required Flag
+        attention_required = bool(critical_alerts or pending_actions)
+
+        # 4. Findings Summary
+        validated_findings = forensic_sec["format_valid_count"] + sum(1 for a in ai_sec["items"] if not a.get("tamper_detected"))
+        anomalous_findings = forensic_sec["anomalies_detected_count"] + ai_sec["tamper_detected_count"] + integrity_sec["compromised_count"]
+        findings_summary = {
+            "validated_findings": validated_findings,
+            "anomalous_findings": anomalous_findings,
+            "red_flags": correlation_sec["red_flags_count"]
+        }
+
+        # 5. Summary Metrics
+        summary_metrics = {
+            "total_evidence": evidence_sec["total_count"],
+            "verified_evidence": integrity_sec["intact_count"],
+            "compromised_evidence": integrity_sec["compromised_count"],
+            "analyzed_evidence": len(inspected_ids | analyzed_ids),
+            "active_red_flags": correlation_sec["red_flags_count"],
+            "reports_generated": reports_sec["total_reports"]
+        }
+
+        return {
+            "success": True,
+            "case_id": case_info["case_id"],
+            "case_number": case_info["case_number"],
+            "title": case_info["title"],
+            "overall_status": summary["overall_status"],
+            "attention_required": attention_required,
+            "critical_alerts": critical_alerts,
+            "pending_actions": pending_actions,
+            "findings_summary": findings_summary,
+            "summary_metrics": summary_metrics,
+            "intelligence_summary": summary
+        }
+

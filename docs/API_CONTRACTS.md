@@ -931,4 +931,132 @@ If `case_id` does not exist in the database, the endpoint returns `404 Not Found
 }
 ```
 
+---
+
+## 10. Investigator Operational Case View (Phase 14)
+
+### 10.1 Overview & Endpoint Specification
+Provides a deterministic, read-only operational triage layer on top of the Phase 13 Case Intelligence Summary (`CaseIntelligenceService.get_case_intelligence_summary`). It translates aggregated case forensic, AI screening, integrity, custody, and verification records into actionable operational alerts and pending actions.
+
+- **Endpoint (Canonical)**: `GET /cases/{case_id}/operational-view`  
+- **Endpoint (Alias)**: `GET /cases/{case_id}/overview`  
+- **Router Prefix**: Exposed on both `/api/cases` and `/api/v1/cases`  
+- **Method**: `GET` (Strictly read-only; zero database mutations, no audit event generation, no state changes)  
+- **Authorization**: Bearer JWT. Reuses existing case viewer RBAC (`auth_case_viewer`).  
+  - Allowed Roles: `INVESTIGATOR`, `ADMIN`, `LAWYER`, `JUDGE`, `AUDITOR`, `SYSTEM_LEAD`, `FORENSIC_EXPERT`
+
+### 10.2 Response Schema & Contract
+Returns `200 OK` with `OperationalCaseViewResponse`:
+
+```json
+{
+  "success": true,
+  "case_id": "CASE-2026-A1B2C3D4",
+  "case_number": "CR-2026-0926-01",
+  "title": "State v. Extortion Syndicate",
+  "overall_status": "INTEGRITY_COMPROMISED",
+  "attention_required": true,
+  "critical_alerts": [
+    {
+      "alert_type": "INTEGRITY_COMPROMISED",
+      "severity": "HIGH",
+      "resource_id": "EVD-2026-0001",
+      "description": "Evidence 'tampered_screenshot.png' cryptographic integrity is compromised (SHA-256 mismatch)."
+    },
+    {
+      "alert_type": "BROKEN_CUSTODY_CHAIN",
+      "severity": "HIGH",
+      "resource_id": "EVD-2026-0001",
+      "description": "Cryptographic chain of custody verification failed for evidence 'EVD-2026-0001'."
+    },
+    {
+      "alert_type": "STORAGE_ERROR",
+      "severity": "MEDIUM",
+      "resource_id": "EVD-2026-0002",
+      "description": "Evidence 'corrupted_audio.wav' encountered a storage access or missing file error."
+    }
+  ],
+  "pending_actions": [
+    {
+      "action_type": "REVIEW_INTEGRITY_COMPROMISE",
+      "resource_id": "EVD-2026-0001",
+      "description": "Review cryptographic hash mismatch and chain breach for evidence 'EVD-2026-0001'."
+    },
+    {
+      "action_type": "VERIFY_CUSTODY_CHAIN",
+      "resource_id": "EVD-2026-0001",
+      "description": "Re-audit broken chain of custody blocks for evidence 'EVD-2026-0001'."
+    },
+    {
+      "action_type": "PENDING_FORENSIC_ANALYSIS",
+      "resource_id": "EVD-2026-0003",
+      "description": "Evidence 'newly_vaulted_doc.pdf' requires forensic metadata and byte structure inspection."
+    }
+  ],
+  "findings_summary": {
+    "validated_findings": 3,
+    "anomalous_findings": 2,
+    "red_flags": 1
+  },
+  "summary_metrics": {
+    "total_evidence": 3,
+    "verified_evidence": 1,
+    "compromised_evidence": 1,
+    "analyzed_evidence": 2,
+    "active_red_flags": 1,
+    "reports_generated": 1
+  },
+  "intelligence_summary": {
+    "success": true,
+    "case": { "...": "..." },
+    "evidence": { "...": "..." },
+    "integrity": { "...": "..." },
+    "forensic": { "...": "..." },
+    "ai_analysis": { "...": "..." },
+    "explainability": { "...": "..." },
+    "correlation": { "...": "..." },
+    "timeline": { "...": "..." },
+    "custody": { "...": "..." },
+    "reports": { "...": "..." },
+    "verification": { "...": "..." },
+    "audit": { "...": "..." },
+    "overall_status": "INTEGRITY_COMPROMISED"
+  }
+}
+```
+
+### 10.3 Deterministic Critical Alerts
+Surfaces alerts **only** from persisted case intelligence. No risk scores or legal conclusions are invented.
+
+| Alert Type | Deterministic Trigger | Severity |
+| :--- | :--- | :--- |
+| `INTEGRITY_COMPROMISED` | Persisted evidence status is `INTEGRITY_COMPROMISED` (SHA-256 hash mismatch). | `HIGH` |
+| `BROKEN_CUSTODY_CHAIN` | Evidence chain of custody verification failed (`chain_intact == false`). | `HIGH` |
+| `AI_TAMPER_DETECTED` | DeepFake / tampering screening detected manipulation (`tamper_detected == true`). | `HIGH` |
+| `TAMPERED_REPORT_VERIFICATION` | Report verification record records tamper status (`TAMPER_DETECTED`, `INVALID`, `TAMPERED`). | `HIGH` |
+| `STORAGE_ERROR` | Persisted evidence status is `STORAGE_ERROR` (file missing or read failure). | `MEDIUM` |
+| `FORENSIC_ANOMALY` | Byte header validation failed (`format_valid == false`) or metadata anomalies detected. | `MEDIUM` |
+| `CORRELATION_RED_FLAG` | Evidence correlation engine identified cross-evidence discrepancies / red flags. | `MEDIUM` |
+
+### 10.4 Deterministic Pending Actions
+Surfaces actionable operational next steps only when genuine investigative work is required:
+
+| Action Type | Condition |
+| :--- | :--- |
+| `REVIEW_INTEGRITY_COMPROMISE` | Surfaced for any evidence with `status == "INTEGRITY_COMPROMISED"`. |
+| `VERIFY_CUSTODY_CHAIN` | Surfaced for any evidence where cryptographic custody verification failed. |
+| `PENDING_FORENSIC_ANALYSIS` | Surfaced for evidence lacking structural/metadata inspection records. |
+| `PENDING_AI_ANALYSIS` | Surfaced for evidence lacking automated AI screening results. |
+| `REVIEW_CORRELATION_RED_FLAGS` | Surfaced when active correlation red flags exist for the case docket. |
+| `GENERATE_COURT_REPORT` | Surfaced when evidence exists, is intact (`compromised_count == 0`, custody intact), but 0 reports have been issued. |
+
+### 10.5 Attention Required Flag
+Deterministic boolean flag:
+- `attention_required = true`: When one or more `critical_alerts` OR `pending_actions` exist.
+- `attention_required = false`: When all evidence is verified, all custody chains are intact, forensic & AI screenings are complete, 0 red flags exist, and court admissibility certificates have been generated.
+
+### 10.6 404 Not Found Behavior
+If `case_id` is not found, standard `CASE_NOT_FOUND` response with status `404 Not Found` is returned identical to Section 9.3.
+
+
 
