@@ -18,7 +18,9 @@ from backend.app.database import get_db
 from backend.app.models.user import User
 from backend.app.core.security import require_roles
 from backend.app.schemas.cases import CaseCreateRequest, CaseUpdateRequest
+from backend.app.schemas.case_intelligence import CaseIntelligenceSummaryResponse
 from backend.app.services.case_service import CaseService
+from backend.app.services.case_intelligence_service import CaseIntelligenceService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
@@ -174,3 +176,32 @@ def update_case(
             "evidence_count": len(updated_case.evidence_items) if hasattr(updated_case, "evidence_items") and updated_case.evidence_items else 0
         }
     }
+
+
+@router.get(
+    "/{case_id}/intelligence-summary",
+    response_model=CaseIntelligenceSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve consolidated case intelligence summary"
+)
+@router.get(
+    "/{case_id}/summary",
+    response_model=CaseIntelligenceSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve consolidated case intelligence summary (alias)"
+)
+def get_case_intelligence_summary(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Consolidated Case & Evidence Intelligence Summary (Phase 13):
+    Aggregates existing case metadata, evidence inventory, cryptographic integrity,
+    forensic inspection findings, AI screening results, explainability records,
+    correlation intelligence, timeline, custody chains, court reports,
+    report verification history, and audit trail into a single unified read-only payload.
+    """
+    service = CaseIntelligenceService(db)
+    return service.get_case_intelligence_summary(case_id)
+

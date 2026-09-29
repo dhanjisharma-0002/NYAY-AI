@@ -16,10 +16,12 @@ from .hashing_service import HashingService
 from .integrity_service import EvidenceIntegrityService
 from .verification_service import VerificationService
 from .audit_service import AuditService
+from .case_intelligence_service import CaseIntelligenceService
 
 __all__ = [
     "BaseService",
     "CaseService",
+    "CaseIntelligenceService",
     "EvidenceService",
     "ForensicService",
     "AIService",

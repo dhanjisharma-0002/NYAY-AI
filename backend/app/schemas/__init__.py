@@ -33,6 +33,7 @@ from .reports import (
     CourtReportResponse
 )
 from .verification import VerificationResponse
+from .case_intelligence import CaseIntelligenceSummaryResponse
 
 __all__ = [
     "APIResponse",
@@ -44,6 +45,7 @@ __all__ = [
     "CaseCreateRequest",
     "CaseResponse",
     "CaseListResponse",
+    "CaseIntelligenceSummaryResponse",
     "EvidenceResponse",
     "EvidenceListResponse",
     "EvidenceUploadResponse",

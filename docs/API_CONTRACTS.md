@@ -745,3 +745,190 @@ The backend acts strictly as an orchestration layer; forensic analysis and model
 3. **Red Flags**: Evidence-based anomalies only (`timestamp inconsistency`, `hash mismatch`, `metadata inconsistency`, `duplicate evidence`, `analysis anomaly`).
 4. **Admissibility Safeguard**: Strict prohibition against claiming criminality in red flags; empirical forensic and computational observations only.
 
+---
+
+## 9. Case & Evidence Intelligence Summary (Phase 13 Specification)
+
+### 9.1 Consolidated Case Intelligence Summary
+- **GET** `/api/cases/{case_id}/intelligence-summary` (and alias `/api/cases/{case_id}/summary`)
+- **Authorization**: Bearer JWT (`INVESTIGATOR`, `ADMIN`, `LAWYER`, `JUDGE`, `AUDITOR`, `SYSTEM_LEAD`, `FORENSIC_EXPERT`)
+- **Purpose**: Provides a consolidated, read-only case-level intelligence view aggregating existing project data across 12 distinct domains without database mutation.
+- **Response** `200 OK`:
+  ```json
+  {
+    "success": true,
+    "case": {
+      "case_id": "CASE-2026-9FA1C2D8",
+      "case_number": "CR-2026-DL-8821",
+      "title": "State vs. Anonymous Cyber Extortion",
+      "description": "Investigation into digital blackmail artifacts.",
+      "status": "UNDER_ANALYSIS",
+      "jurisdiction": "High Court of Delhi",
+      "created_by": "12f4738f-38d5-47dc-8f6f-08c24d5f61f5",
+      "created_at": "2026-09-26T14:00:00.000000Z",
+      "updated_at": "2026-09-26T14:00:00.000000Z"
+    },
+    "evidence": {
+      "total_count": 1,
+      "by_media_type": {
+        "IMAGE": 1
+      },
+      "total_size_bytes": 102400,
+      "items": [
+        {
+          "evidence_id": "EVD-2026-A1B2C3D4",
+          "original_filename": "extortion_screenshot.png",
+          "media_type": "IMAGE",
+          "mime_type": "image/png",
+          "file_size_bytes": 102400,
+          "sha256_hash": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+          "status": "VERIFIED",
+          "source_description": "Victim desktop export",
+          "created_at": "2026-09-26T14:20:00.000000Z"
+        }
+      ]
+    },
+    "integrity": {
+      "total_checked": 1,
+      "intact_count": 1,
+      "compromised_count": 0,
+      "storage_error_count": 0,
+      "integrity_status": "INTACT"
+    },
+    "forensic": {
+      "inspected_count": 1,
+      "anomalies_detected_count": 0,
+      "format_valid_count": 1,
+      "items": [
+        {
+          "evidence_id": "EVD-2026-A1B2C3D4",
+          "format_valid": true,
+          "magic_bytes": "89504e470d0a1a0a",
+          "anomalies_count": 0,
+          "anomalies": []
+        }
+      ]
+    },
+    "ai_analysis": {
+      "analyzed_count": 1,
+      "tamper_detected_count": 0,
+      "average_risk_score": 0.08,
+      "items": [
+        {
+          "analysis_id": "AIR-2026-9B8A7C6D",
+          "evidence_id": "EVD-2026-A1B2C3D4",
+          "analysis_type": "TAMPER_DETECTION",
+          "prediction": "NO_TAMPER_INDICATIONS_DETECTED",
+          "confidence": 0.92,
+          "risk_score": 0.08,
+          "tamper_detected": false,
+          "findings": ["Statistical pixel histogram consistent"],
+          "model_name": "TamperScreener-Baseline",
+          "model_version": "0.1.0"
+        }
+      ]
+    },
+    "explainability": {
+      "records_count": 1,
+      "available": true,
+      "categories": {
+        "HIGH": 1
+      }
+    },
+    "correlation": {
+      "timeline_events_count": 2,
+      "relationships_count": 0,
+      "cross_matches_count": 0,
+      "red_flags_count": 0,
+      "red_flags": []
+    },
+    "timeline": {
+      "total_events": 2,
+      "has_timeline": true,
+      "earliest_timestamp": "2026-09-26T14:20:00.000000Z",
+      "latest_timestamp": "2026-09-26T14:28:00.000000Z"
+    },
+    "custody": {
+      "total_events": 2,
+      "all_chains_intact": true,
+      "broken_chains_count": 0,
+      "evidence_chains": [
+        {
+          "evidence_id": "EVD-2026-A1B2C3D4",
+          "chain_intact": true,
+          "total_events": 2,
+          "broken_at_event_id": null
+        }
+      ]
+    },
+    "reports": {
+      "total_reports": 1,
+      "reports_list": [
+        {
+          "report_id": "REP-2026-001",
+          "report_type": "PDF",
+          "status": "GENERATED",
+          "report_sha256": "4a7d1ed414474e4033ac29ccb8653d9b...",
+          "verification_code": "VERIFY-9FA1C2D8",
+          "created_at": "2026-09-26T14:35:00.000000Z"
+        }
+      ]
+    },
+    "verification": {
+      "total_verifications": 1,
+      "valid_verifications": 1,
+      "tampered_verifications": 0,
+      "recent_verifications": [
+        {
+          "verification_id": "VER-8D3E9112",
+          "report_id": "REP-2026-001",
+          "verification_method": "QR_CODE",
+          "status": "VALID",
+          "timestamp": "2026-09-26T14:40:00.000000Z"
+        }
+      ]
+    },
+    "audit": {
+      "total_audit_events": 4,
+      "recent_events": [
+        {
+          "audit_id": "AUD-E1F2A3B4",
+          "user_id": "12f4738f-38d5-47dc-8f6f-08c24d5f61f5",
+          "action": "EVIDENCE_UPLOADED",
+          "resource_type": "EVIDENCE",
+          "resource_id": "EVD-2026-A1B2C3D4",
+          "timestamp": "2026-09-26T14:20:00.000000Z",
+          "metadata": {
+            "filename": "extortion_screenshot.png"
+          }
+        }
+      ]
+    },
+    "overall_status": "READY_FOR_COURT"
+  }
+  ```
+
+### 9.2 Deterministic Overall Status Rules
+The `overall_status` field is computed deterministically using the following strict priority rules:
+1. `NO_EVIDENCE`: When `evidence.total_count == 0`.
+2. `INTEGRITY_COMPROMISED`: If any evidence has `status == "INTEGRITY_COMPROMISED"`, any custody chain is broken (`broken_chains_count > 0`), or any report verification detected tampering (`tampered_verifications > 0`).
+3. `STORAGE_ERROR`: If any evidence has `status == "STORAGE_ERROR"`.
+4. `ARCHIVED`: If the case lifecycle status is `ARCHIVED`.
+5. `READY_FOR_COURT`: If evidence is present (`total_count > 0`), all cryptographic custody chains are unbroken, zero integrity compromises exist, and at least one court admissibility report has been issued (`total_reports > 0`).
+6. `UNDER_ANALYSIS`: If evidence is present and intact, but no final court admissibility certificate/report has been generated yet.
+
+### 9.3 404 Not Found Behavior
+If `case_id` does not exist in the database, the endpoint returns `404 Not Found` with RFC 7807 problem details:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "CASE_NOT_FOUND",
+    "message": "The requested Case with identifier 'CASE-NONEXISTENT' was not found in vault.",
+    "timestamp": "2026-09-26T14:45:00.000000Z",
+    "details": {}
+  }
+}
+```
+
+
