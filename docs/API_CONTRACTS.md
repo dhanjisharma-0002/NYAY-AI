@@ -1185,6 +1185,96 @@ Executes automated end-to-end evidence processing (forensic metadata extraction,
 5. **Lifecycle State Transition**: Transitions case status from `OPEN` to `UNDER_ANALYSIS` once at least one item is processed.
 6. **Consolidated Audit Trail**: Emits exactly one `CASE_PIPELINE_BATCH_EXECUTED` audit event per batch execution.
 
+---
+
+## 13. Case Docket Finalization & Judicial Sealing (Phase 17)
+
+### 13.1 Overview & Endpoint Specification
+Provides formal judicial completion and cryptographic sealing for investigative case dockets under BSA 2023 / ISO 27037 standards. Enforces rigorous pre-closure validation gates, generates a deterministic docket sealing manifest hash, appends terminal `DOCKET_SEALED` chain-of-custody blocks to all evidence artifacts, transitions the case to `COMPLETED`, blocks future evidence intake, and emits a consolidated `CASE_FINALIZED` audit event.
+
+- **Endpoint (Canonical)**: `POST /cases/{case_id}/finalize`
+- **Endpoint (Alias)**: `POST /cases/{case_id}/seal`
+- **Manifest Inspection**: `GET /cases/{case_id}/sealing-manifest`
+- **Router Prefix**: Exposed on both `/api/cases` and `/api/v1/cases`
+- **Method**: `POST` (finalization), `GET` (manifest inspection)
+- **Authorization**: Bearer JWT (`INVESTIGATOR`, `ADMIN`, `JUDGE`, `SYSTEM_LEAD`).
+  - `INVESTIGATOR`: Scoped strictly to owned/assigned cases (`created_by == current_user.id`).
+  - `ADMIN`, `JUDGE`, `SYSTEM_LEAD`: Broad docket finalization authority.
+  - Read-only manifest inspection allows `auth_case_viewer` (`INVESTIGATOR`, `ADMIN`, `LAWYER`, `JUDGE`, `AUDITOR`, `SYSTEM_LEAD`).
+
+### 13.2 Pre-Finalization Validation Gates
+All the following checks are enforced atomically before docket sealing:
+1. **Non-Empty Docket**: Rejects empty cases (`total_evidence > 0`). Error: `EMPTY_CASE_DOCKET` (HTTP 400).
+2. **Analysis Completeness**: Rejects cases with pending forensic or AI analysis (`PENDING_FORENSIC_ANALYSIS`, `PENDING_AI_ANALYSIS`). Error: `PENDING_ANALYSIS_REMAINS` (HTTP 400).
+3. **Integrity Validation**: Rejects cases with any `INTEGRITY_COMPROMISED` or `STORAGE_ERROR` evidence items. Error: `EVIDENCE_INTEGRITY_COMPROMISED` (HTTP 400).
+4. **Custody Chain Continuity**: Validates that all cryptographic custody event hash chains are unbroken (`is_valid == true`). Error: `BROKEN_CUSTODY_CHAIN` (HTTP 400).
+5. **Court Report Requirement**: Requires at least one official court admissibility report (BSA 2023) generated for the case. Error: `COURT_REPORT_REQUIRED` (HTTP 400).
+6. **Idempotency Guard**: Cases already in `COMPLETED` or `ARCHIVED` status cannot be finalized again. Error: `CASE_ALREADY_COMPLETED` (HTTP 409).
+
+### 13.3 Request & Response Contract
+- **Request Body** (Optional):
+  ```json
+  {
+    "certification_notes": "All forensic analyses, AI screening, and custody chains verified for court submission.",
+    "certifying_officer_name": "Dhananjay Sharma",
+    "badge_number": "INV-DL-9841"
+  }
+  ```
+
+- **Response** `200 OK` (`CaseFinalizationResponse`):
+  ```json
+  {
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "previous_status": "UNDER_ANALYSIS",
+    "new_status": "COMPLETED",
+    "sealed_at": "2026-09-29T16:20:00.000000Z",
+    "docket_sealing_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "total_evidence_sealed": 3,
+    "court_reports_referenced": 1,
+    "custody_events_appended": 3,
+    "sealed_by": "USR-INV-001"
+  }
+  ```
+
+- **Sealing Manifest Response** `GET /cases/{case_id}/sealing-manifest`:
+  ```json
+  {
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "status": "COMPLETED",
+    "is_sealed": true,
+    "docket_sealing_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sealed_at": "2026-09-29T16:20:00.000000Z",
+    "sealed_by": "USR-INV-001",
+    "certification_notes": "All forensic analyses verified.",
+    "evidence_manifest": [
+      {
+        "evidence_id": "EVD-2026-0001",
+        "original_filename": "extortion_screenshot.png",
+        "sha256_hash": "a1b2c3d4...",
+        "status": "ANALYZED",
+        "terminal_custody_hash": "f5e6d7..."
+      }
+    ],
+    "reports_manifest": [
+      {
+        "report_id": "REP-2026-0001",
+        "report_type": "PDF",
+        "report_sha256": "c7d8e9...",
+        "verification_code": "NYAY-2026-A1B2C3",
+        "created_at": "2026-09-29T16:15:00.000000Z"
+      }
+    ]
+  }
+  ```
+
+### 13.4 Post-Finalization Immutability Enforcement
+Once a case docket reaches `COMPLETED` or `ARCHIVED` status:
+- All evidence upload routes (`POST /api/evidence/upload` and `POST /api/cases/{case_id}/evidence`) block new intake with `400 Bad Request` (`error_code: CASE_SEALED`).
+- Terminal `DOCKET_SEALED` custody blocks prevent further unauthorized state alterations.
+
+
 
 
 

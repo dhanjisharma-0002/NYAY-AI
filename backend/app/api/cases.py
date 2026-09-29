@@ -22,15 +22,24 @@ from backend.app.schemas.case_intelligence import CaseIntelligenceSummaryRespons
 from backend.app.schemas.operational_view import OperationalCaseViewResponse
 from backend.app.schemas.dashboard import OperationalDashboardResponse
 from backend.app.schemas.pipeline_batch import CaseBatchPipelineRequest, CaseBatchPipelineResponse
+from backend.app.schemas.case_finalization import (
+    CaseFinalizationRequest,
+    CaseFinalizationResponse,
+    DocketSealingManifestResponse
+)
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
 from backend.app.services.dashboard_service import DashboardService
 from backend.app.services.pipeline_batch_service import PipelineBatchService
+from backend.app.services.case_finalization_service import CaseFinalizationService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
 # Case creators: INVESTIGATOR, ADMIN, and legacy SYSTEM_LEAD
 auth_case_creator = require_roles("INVESTIGATOR", "ADMIN", "SYSTEM_LEAD")
+
+# Case finalizers: INVESTIGATOR, ADMIN, JUDGE, SYSTEM_LEAD
+auth_case_finalizer = require_roles("INVESTIGATOR", "ADMIN", "JUDGE", "SYSTEM_LEAD")
 
 # Case viewers: INVESTIGATOR, ADMIN, LAWYER, JUDGE, and legacy roles
 auth_case_viewer = require_roles(
@@ -325,6 +334,70 @@ def run_case_analysis_alias(
     force_reanalysis = payload.force_reanalysis if payload else False
     service = PipelineBatchService(db)
     return service.process_case_pipeline(case_id, current_user, force_reanalysis=force_reanalysis)
+
+
+@router.post(
+    "/{case_id}/finalize",
+    response_model=CaseFinalizationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Formally finalize and cryptographically seal case docket"
+)
+def finalize_case_endpoint(
+    case_id: str,
+    payload: Optional[CaseFinalizationRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_finalizer)
+):
+    """
+    Case Docket Finalization & Judicial Sealing (Phase 17):
+    Validates that all evidence is analyzed, zero compromises or storage errors exist,
+    all custody chains are unbroken, and an official court report exists.
+    Computes deterministic SHA-256 docket sealing manifest, appends terminal
+    DOCKET_SEALED custody event to each evidence item, transitions case to COMPLETED,
+    and logs exactly one CASE_FINALIZED audit event.
+    """
+    service = CaseFinalizationService(db)
+    return service.finalize_case(case_id, current_user, payload=payload)
+
+
+@router.post(
+    "/{case_id}/seal",
+    response_model=CaseFinalizationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Formally finalize and cryptographically seal case docket (alias)"
+)
+def seal_case_alias_endpoint(
+    case_id: str,
+    payload: Optional[CaseFinalizationRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_finalizer)
+):
+    """
+    Case Docket Sealing Alias (Phase 17).
+    """
+    service = CaseFinalizationService(db)
+    return service.finalize_case(case_id, current_user, payload=payload)
+
+
+@router.get(
+    "/{case_id}/sealing-manifest",
+    response_model=DocketSealingManifestResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve cryptographic sealing manifest for a case docket"
+)
+def get_sealing_manifest_endpoint(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Case Docket Sealing Manifest Inspection (Phase 17):
+    Returns evidence manifest items with baseline SHA-256 and terminal custody hashes,
+    court report references, and root docket sealing hash.
+    """
+    service = CaseFinalizationService(db)
+    return service.get_sealing_manifest(case_id)
+
 
 
 

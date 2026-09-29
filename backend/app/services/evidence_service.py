@@ -74,6 +74,13 @@ class EvidenceService(BaseService):
         case = self.db.query(Case).filter_by(case_id=case_id).first()
         if not case:
             raise EntityNotFoundException("Case", case_id)
+        if case.status in ("COMPLETED", "ARCHIVED"):
+            raise AppException(
+                message=f"Cannot intake evidence into case '{case_id}': case docket is {case.status} and sealed.",
+                status_code=400,
+                error_code="CASE_SEALED",
+                details={"case_id": case_id, "status": case.status}
+            )
 
         # Step 3 & 4: Read file content & validate file
         filename = upload_file.filename or "unknown_evidence"

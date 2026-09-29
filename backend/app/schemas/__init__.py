@@ -37,8 +37,12 @@ from .case_intelligence import CaseIntelligenceSummaryResponse
 from .operational_view import OperationalCaseViewResponse, CriticalAlert, PendingAction, FindingsSummary, SummaryMetrics
 from .dashboard import OperationalDashboardResponse, UrgentCaseItem, EvidenceMetrics, PendingActionMetrics
 from .pipeline_batch import CaseBatchPipelineRequest, CaseBatchPipelineResponse
+from .case_finalization import CaseFinalizationRequest, CaseFinalizationResponse, DocketSealingManifestResponse
 
 __all__ = [
+    "CaseFinalizationRequest",
+    "CaseFinalizationResponse",
+    "DocketSealingManifestResponse",
     "APIResponse",
     "ErrorResponse",
     "HealthResponse",
