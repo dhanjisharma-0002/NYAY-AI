@@ -39,6 +39,14 @@ from backend.app.schemas.export_bundle import (
     BundleManifestResponse
 )
 from backend.app.schemas.bundle_verification import BundleVerificationResponse
+from backend.app.schemas.exhibit_marking import (
+    EvidenceTenderRequest,
+    EvidenceTenderResponse,
+    ExhibitMarkingRequest,
+    ExhibitRecordResponse,
+    EvidenceExhibitStatusResponse,
+    CaseExhibitRegisterResponse
+)
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
 from backend.app.services.dashboard_service import DashboardService
@@ -47,6 +55,7 @@ from backend.app.services.case_finalization_service import CaseFinalizationServi
 from backend.app.services.admissibility_service import AdmissibilityService
 from backend.app.services.export_bundle_service import ExportBundleService
 from backend.app.services.bundle_verification_service import BundleVerificationService
+from backend.app.services.exhibit_marking_service import ExhibitMarkingService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
@@ -65,6 +74,12 @@ auth_case_viewer = require_roles(
 auth_admissibility_verifier = require_roles(
     "JUDGE", "ADMIN", "AUDITOR", "SYSTEM_LEAD", "LAWYER", "INVESTIGATOR"
 )
+
+# Judicial exhibit markers (Phase 21): strictly restricted to JUDGE
+auth_judge_only = require_roles("JUDGE")
+
+# Evidence tenderers (Phase 21): LAWYER, INVESTIGATOR, JUDGE, ADMIN, SYSTEM_LEAD
+auth_tenderer = require_roles("LAWYER", "INVESTIGATOR", "JUDGE", "ADMIN", "SYSTEM_LEAD")
 
 
 @router.post("", status_code=status.HTTP_201_CREATED, summary="Create a new case docket")
@@ -613,6 +628,175 @@ def verify_disclosure_package_alias_endpoint(
     """
     service = BundleVerificationService(db)
     return service.verify_uploaded_bundle(case_id, file, current_user, notes=notes)
+
+
+# ============================================================================
+# Phase 21: Judicial Courtroom Exhibit Marking, Tender & Admissibility Gateway
+# ============================================================================
+
+@router.post(
+    "/{case_id}/exhibits/tender",
+    response_model=EvidenceTenderResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Tender digital evidence artifact or Section 63 report in courtroom proceedings"
+)
+def tender_evidence_endpoint(
+    case_id: str,
+    payload: EvidenceTenderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_tenderer)
+):
+    """
+    Courtroom Evidence Tendering Gateway (Phase 21):
+    Allows authorized counsel (LAWYER) or investigating officers (INVESTIGATOR)
+    to formally tender digital evidence or official Section 63 reports into the court record.
+    Tendering records courtroom presentation without assigning final exhibit number or ruling.
+    """
+    service = ExhibitMarkingService(db)
+    return service.tender_evidence(case_id, current_user, payload)
+
+
+@router.post(
+    "/{case_id}/tender-evidence",
+    response_model=EvidenceTenderResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Tender digital evidence artifact or Section 63 report in courtroom proceedings (alias)"
+)
+def tender_evidence_alias_endpoint(
+    case_id: str,
+    payload: EvidenceTenderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_tenderer)
+):
+    """Courtroom Evidence Tendering Gateway Alias (Phase 21)."""
+    service = ExhibitMarkingService(db)
+    return service.tender_evidence(case_id, current_user, payload)
+
+
+@router.post(
+    "/{case_id}/exhibits/mark",
+    response_model=ExhibitRecordResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Officially mark courtroom exhibit and record judicial admissibility ruling"
+)
+def mark_exhibit_endpoint(
+    case_id: str,
+    payload: ExhibitMarkingRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_judge_only)
+):
+    """
+    Judicial Exhibit Marking & Admissibility Ruling Gateway (Phase 21):
+    Enforces statutory judicial authority under BSA 2023 Section 63:
+    1. Strictly restricted to JUDGE (administrators and advocates cannot make judicial rulings).
+    2. Validates case is sealed (COMPLETED) with verified Section 63 admissibility.
+    3. Assigns official judicial exhibit identifier (e.g. 'Ex. P-1', 'Ex. D-1', 'MO-1').
+    4. Evaluates and records statutory ruling:
+       - ADMITTED_AS_EXHIBIT
+       - MARKED_FOR_IDENTIFICATION
+       - OBJECTED_DECISION_RESERVED
+       - REJECTED
+    5. Appends terminal JUDICIAL_EXHIBIT_MARKED custody block to evidence items.
+    6. Emits single EXHIBIT_MARKED audit event.
+    7. Strictly enforces case-scoped exhibit identifier uniqueness and double-admission protection.
+    """
+    service = ExhibitMarkingService(db)
+    return service.mark_exhibit(case_id, current_user, payload)
+
+
+@router.post(
+    "/{case_id}/mark-exhibit",
+    response_model=ExhibitRecordResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Officially mark courtroom exhibit and record judicial admissibility ruling (alias)"
+)
+def mark_exhibit_alias_endpoint(
+    case_id: str,
+    payload: ExhibitMarkingRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_judge_only)
+):
+    """Judicial Exhibit Marking & Ruling Gateway Alias (Phase 21)."""
+    service = ExhibitMarkingService(db)
+    return service.mark_exhibit(case_id, current_user, payload)
+
+
+@router.get(
+    "/{case_id}/exhibits",
+    response_model=CaseExhibitRegisterResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve consolidated Judicial Exhibit Register for a case docket"
+)
+def get_case_exhibit_register_endpoint(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Judicial Exhibit Register Query (Phase 21):
+    Returns chronologically ordered exhibit history, tendering records, and ruling breakdown.
+    Strictly read-only; never exposes internal filesystem storage paths.
+    """
+    service = ExhibitMarkingService(db)
+    return service.get_case_exhibit_register(case_id, current_user)
+
+
+@router.get(
+    "/{case_id}/exhibit-register",
+    response_model=CaseExhibitRegisterResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve consolidated Judicial Exhibit Register for a case docket (alias)"
+)
+def get_case_exhibit_register_alias_endpoint(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """Judicial Exhibit Register Query Alias (Phase 21)."""
+    service = ExhibitMarkingService(db)
+    return service.get_case_exhibit_register(case_id, current_user)
+
+
+@router.get(
+    "/{case_id}/exhibits/{exhibit_number}",
+    response_model=ExhibitRecordResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve specific judicial exhibit record by court exhibit number"
+)
+def get_exhibit_by_number_endpoint(
+    case_id: str,
+    exhibit_number: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Exhibit Record Lookup (Phase 21):
+    Retrieves full judicial exhibit record by assigned exhibit number (e.g. 'Ex. P-1').
+    """
+    service = ExhibitMarkingService(db)
+    return service.get_exhibit_by_number(case_id, exhibit_number, current_user)
+
+
+@router.get(
+    "/{case_id}/evidence/{evidence_id}/exhibit",
+    response_model=EvidenceExhibitStatusResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Inspect courtroom exhibit marking and tender status for an evidence artifact"
+)
+def get_evidence_exhibit_endpoint(
+    case_id: str,
+    evidence_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Evidence Exhibit Status Inspection (Phase 21):
+    Inspects whether an evidence artifact is tendered or marked as an exhibit,
+    including ruling, presiding judicial officer, court bench, and timestamps.
+    """
+    service = ExhibitMarkingService(db)
+    return service.get_evidence_exhibit(case_id, evidence_id, current_user)
+
 
 
 

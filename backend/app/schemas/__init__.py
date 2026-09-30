@@ -58,8 +58,28 @@ from .bundle_verification import (
     BundleManifestVerificationRequest,
     BundleManifestVerificationResponse
 )
+from .exhibit_marking import (
+    ExhibitRulingEnum,
+    TenderingPartyEnum,
+    ExhibitItemTypeEnum,
+    EvidenceTenderRequest,
+    EvidenceTenderResponse,
+    ExhibitMarkingRequest,
+    ExhibitRecordResponse,
+    EvidenceExhibitStatusResponse,
+    CaseExhibitRegisterResponse
+)
 
 __all__ = [
+    "ExhibitRulingEnum",
+    "TenderingPartyEnum",
+    "ExhibitItemTypeEnum",
+    "EvidenceTenderRequest",
+    "EvidenceTenderResponse",
+    "ExhibitMarkingRequest",
+    "ExhibitRecordResponse",
+    "EvidenceExhibitStatusResponse",
+    "CaseExhibitRegisterResponse",
     "BundleVerificationStatusEnum",
     "ArtifactVerificationItem",
     "BundleVerificationChecks",

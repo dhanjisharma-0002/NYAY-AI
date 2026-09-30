@@ -1634,6 +1634,142 @@ Provides offline, non-mutating cryptographic authenticity and tamper audit verif
   }
   ```
 
+---
+
+## 17. Judicial Courtroom Exhibit Marking, Evidence Tender & Admissibility Ruling Gateway (Phase 21)
+
+### 17.1 Overview & Statutory Framework
+Provides official courtroom presentation, advocate evidence tendering, and presiding judicial exhibit marking and admissibility rulings under Bharatiya Sakshya Adhiniyam, 2023 (BSA 2023) Section 63 and Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS 2023):
+1. **Evidence Tendering**: Authorized advocates (`LAWYER` for Prosecution or Defence) or investigating officers (`INVESTIGATOR`) submit digital evidence artifacts or official Section 63 reports for court tender. Tendering submits evidence into the trial record without assigning final exhibit numbers or judicial determinations.
+2. **Official Judicial Exhibit Marking & Ruling**: Strictly restricted to `JUDGE`. The presiding judge assigns the formal judicial exhibit identifier (e.g. `Ex. P-1`, `Ex. D-1`, `MO-1`, `Mark A`) and records the statutory ruling:
+   - `ADMITTED_AS_EXHIBIT`: Formally admitted into trial evidence under BSA 2023 Section 63.
+   - `MARKED_FOR_IDENTIFICATION`: Marked for identification (MFI) pending operator/expert testimony.
+   - `OBJECTED_DECISION_RESERVED`: Formal counsel objection noted; ruling reserved for final judgment.
+   - `REJECTED`: Excluded as inadmissible.
+3. **Cryptographic Custody Transition**: Tendering and marking append new cryptographic blocks (`EXHIBIT_TENDERED_IN_COURT`, `JUDICIAL_EXHIBIT_MARKED`) to the evidence custody ledger without breaking the historical hash chain.
+4. **Compliance Audit Trail**: Emits exactly one `EXHIBIT_TENDERED` or `EXHIBIT_MARKED` audit event per action.
+5. **Case-Scoped Uniqueness**: Strictly enforces case-scoped exhibit identifier uniqueness (`HTTP 409 Conflict` on duplicate exhibit number).
+6. **Double-Admission Guard**: Prohibits re-admitting an already admitted evidence artifact (`HTTP 409 Conflict`).
+7. **Strictly Read-Only Queries**: Exhibit register and lookup routes never mutate database rows or WORM storage files.
+
+- **Endpoints**:
+  - `POST /cases/{case_id}/exhibits/tender` (Alias: `POST /cases/{case_id}/tender-evidence`)
+  - `POST /cases/{case_id}/exhibits/mark` (Alias: `POST /cases/{case_id}/mark-exhibit`)
+  - `GET /cases/{case_id}/exhibits` (Alias: `GET /cases/{case_id}/exhibit-register`)
+  - `GET /cases/{case_id}/exhibits/{exhibit_number}`
+  - `GET /cases/{case_id}/evidence/{evidence_id}/exhibit`
+- **Router Prefixes**: Mounted at `/api/cases` and `/api/v1/cases`.
+- **Authorization**:
+  - Marking/Ruling: `JUDGE` only (`ADMIN`, `LAWYER`, `INVESTIGATOR` rejected with `403 Forbidden`).
+  - Tendering: `LAWYER`, `INVESTIGATOR`, `JUDGE`, `ADMIN`. Case-scoping enforced.
+  - Viewing/Register: Authorized case viewers (`JUDGE`, `LAWYER`, `INVESTIGATOR`, `ADMIN`, `AUDITOR`).
+
+### 17.2 Request & Response Contracts
+
+#### A. Evidence Tendering (`POST /cases/{case_id}/exhibits/tender`)
+- **Request Body** (`EvidenceTenderRequest`):
+  ```json
+  {
+    "target_id": "EVD-2026-0001",
+    "target_type": "EVIDENCE",
+    "tendering_party": "PROSECUTION",
+    "tendering_witness": "PW-1 Inspector S. K. Sharma",
+    "purpose": "Corroboration of CCTV timestamp and vehicle ingress",
+    "tender_notes": "Tendered during Examination-in-Chief of PW-1"
+  }
+  ```
+
+- **Response** `200 OK` (`EvidenceTenderResponse`):
+  ```json
+  {
+    "success": true,
+    "tender_id": "TND-2026-A1B2C3D4",
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "target_id": "EVD-2026-0001",
+    "target_type": "EVIDENCE",
+    "target_filename": "cctv_camera_01.mp4",
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tendering_party": "PROSECUTION",
+    "tendering_witness": "PW-1 Inspector S. K. Sharma",
+    "purpose": "Corroboration of CCTV timestamp and vehicle ingress",
+    "tender_notes": "Tendered during Examination-in-Chief of PW-1",
+    "tendered_by": "usr-prosecutor-01",
+    "tendered_by_username": "prosecutor_singh",
+    "tendered_at": "2026-09-30T10:15:00.000000Z",
+    "status": "TENDERED",
+    "custody_event_id": "EVT-2026-98765432",
+    "audit_id": "AUD-2026-11223344"
+  }
+  ```
+
+#### B. Judicial Exhibit Marking (`POST /cases/{case_id}/exhibits/mark`)
+- **Request Body** (`ExhibitMarkingRequest`):
+  ```json
+  {
+    "target_id": "EVD-2026-0001",
+    "target_type": "EVIDENCE",
+    "exhibit_number": "Ex. P-1",
+    "tendering_party": "PROSECUTION",
+    "tendering_witness": "PW-1 Inspector S. K. Sharma",
+    "ruling": "ADMITTED_AS_EXHIBIT",
+    "court_bench": "Court of Sessions No. 4, Patiala House Courts, New Delhi",
+    "judicial_officer_name": "Hon'ble Justice S. K. Gupta",
+    "order_reference": "Sessions Case 402/2026 Order dated 2026-09-30",
+    "objections_raised": "Defense objected under BSA Sec 63 claiming device hash re-computation needed.",
+    "ruling_rationale": "Overruled. Admissibility Certificate verified authentic under BSA 2023 Section 63; sealing hash intact."
+  }
+  ```
+
+- **Response** `200 OK` (`ExhibitRecordResponse`):
+  ```json
+  {
+    "success": true,
+    "exhibit_id": "EXH-2026-E1E2E3E4",
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "exhibit_number": "Ex. P-1",
+    "target_id": "EVD-2026-0001",
+    "target_type": "EVIDENCE",
+    "target_filename": "cctv_camera_01.mp4",
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tendering_party": "PROSECUTION",
+    "tendering_witness": "PW-1 Inspector S. K. Sharma",
+    "ruling": "ADMITTED_AS_EXHIBIT",
+    "court_bench": "Court of Sessions No. 4, Patiala House Courts, New Delhi",
+    "judicial_officer_name": "Hon'ble Justice S. K. Gupta",
+    "order_reference": "Sessions Case 402/2026 Order dated 2026-09-30",
+    "objections_raised": "Defense objected under BSA Sec 63 claiming device hash re-computation needed.",
+    "ruling_rationale": "Overruled. Admissibility Certificate verified authentic under BSA 2023 Section 63; sealing hash intact.",
+    "marked_by": "usr-judge-01",
+    "marked_by_username": "judge_gupta",
+    "marked_at": "2026-09-30T10:20:00.000000Z",
+    "custody_event_id": "EVT-2026-88776655",
+    "custody_event_hash": "4a5b6c7d8e9f...",
+    "audit_id": "AUD-2026-55443322"
+  }
+  ```
+
+#### C. Case Exhibit Register (`GET /cases/{case_id}/exhibits`)
+- **Response** `200 OK` (`CaseExhibitRegisterResponse`):
+  ```json
+  {
+    "success": true,
+    "case_id": "CASE-2026-A1B2C3D4",
+    "case_number": "CR-2026-0926-01",
+    "case_status": "COMPLETED",
+    "docket_sealing_hash": "a9f8b7c6d5e4...",
+    "total_exhibits": 2,
+    "admitted_count": 2,
+    "mfi_count": 0,
+    "objected_count": 0,
+    "rejected_count": 0,
+    "exhibits": [ ... ],
+    "tenders": [ ... ]
+  }
+  ```
+
+
 
 
 
