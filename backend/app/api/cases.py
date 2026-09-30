@@ -11,14 +11,16 @@ Enforces strict role-based access control ('Only authorized users should access 
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, status, File, Form, UploadFile
+from fastapi import APIRouter, Depends, status, File, Form, UploadFile, Body
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
 from backend.app.models.user import User
+from backend.app.models.audit import AuditLog
+from backend.app.utils.exceptions import AppException
 from backend.app.core.security import require_roles
-from backend.app.schemas.cases import CaseCreateRequest, CaseUpdateRequest
+from backend.app.schemas.cases import CaseCreateRequest, CaseUpdateRequest, CaseStatusEnum
 from backend.app.schemas.case_intelligence import CaseIntelligenceSummaryResponse
 from backend.app.schemas.operational_view import OperationalCaseViewResponse
 from backend.app.schemas.dashboard import OperationalDashboardResponse
@@ -47,6 +49,17 @@ from backend.app.schemas.exhibit_marking import (
     EvidenceExhibitStatusResponse,
     CaseExhibitRegisterResponse
 )
+from backend.app.schemas.trial_disposition import (
+    TrialVerdictRequest,
+    TrialVerdictResponse,
+    ObjectionResolutionRequest,
+    ObjectionResolutionResponse,
+    ExhibitDisposalOrderRequest,
+    ExhibitDisposalOrderResponse,
+    CaseArchivalRequest,
+    CaseArchivalResponse,
+    CaseTrialDispositionRegisterResponse
+)
 from backend.app.services.case_service import CaseService
 from backend.app.services.case_intelligence_service import CaseIntelligenceService
 from backend.app.services.dashboard_service import DashboardService
@@ -56,6 +69,7 @@ from backend.app.services.admissibility_service import AdmissibilityService
 from backend.app.services.export_bundle_service import ExportBundleService
 from backend.app.services.bundle_verification_service import BundleVerificationService
 from backend.app.services.exhibit_marking_service import ExhibitMarkingService
+from backend.app.services.trial_disposition_service import TrialDispositionService
 
 router = APIRouter(prefix="/cases", tags=["Cases"])
 
@@ -242,6 +256,21 @@ def update_case(
     Lifecycle statuses allowed: OPEN, UNDER_ANALYSIS, COMPLETED, ARCHIVED.
     Restricted strictly to case managers (INVESTIGATOR, ADMIN).
     """
+    # Archival Governance Check (Phase 22):
+    # Direct transition to ARCHIVED is strictly forbidden via generic PATCH on finalized/sealed cases.
+    if payload.status in ("ARCHIVED", CaseStatusEnum.ARCHIVED):
+        is_sealed = db.query(AuditLog).filter_by(resource_id=case_id, action="CASE_FINALIZED").first() is not None
+        has_exhibits = db.query(AuditLog).filter(
+            AuditLog.resource_id == case_id,
+            AuditLog.action.in_(["EXHIBIT_MARKED", "EXHIBIT_TENDERED"])
+        ).first() is not None
+        if is_sealed or has_exhibits:
+            raise AppException(
+                message="Direct transition to ARCHIVED is forbidden for finalized cases. Case docket must be archived through the judicial disposition gateway (POST /api/cases/{case_id}/archive).",
+                status_code=400,
+                error_code="ARCHIVAL_GOVERNANCE_BYPASS"
+            )
+
     service = CaseService(db)
     updated_case = service.update_case(case_id, payload)
     return {
@@ -796,6 +825,163 @@ def get_evidence_exhibit_endpoint(
     """
     service = ExhibitMarkingService(db)
     return service.get_evidence_exhibit(case_id, evidence_id, current_user)
+
+
+# ==============================================================================
+# PHASE 22: JUDICIAL TRIAL DISPOSITION, OBJECTION RESOLUTION & EXHIBIT DISPOSAL
+# ==============================================================================
+
+@router.post(
+    "/{case_id}/disposition/verdict",
+    response_model=TrialVerdictResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Pronounce judicial trial verdict and record judgment disposition"
+)
+@router.post(
+    "/{case_id}/verdict",
+    response_model=TrialVerdictResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Pronounce judicial trial verdict (alias)"
+)
+def pronounce_verdict_endpoint(
+    case_id: str,
+    payload: TrialVerdictRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_judge_only)
+):
+    """
+    Trial Verdict Pronouncement (Phase 22):
+    Officially records trial verdict (CONVICTED, ACQUITTED, DISCHARGED, DISMISSED, PARTIALLY_CONVICTED)
+    and calculates statutory appellate limitation holds. Strictly JUDGE only.
+    """
+    service = TrialDispositionService(db)
+    return service.record_trial_verdict(case_id, current_user, payload)
+
+
+@router.post(
+    "/{case_id}/exhibits/{exhibit_number}/resolve-objection",
+    response_model=ObjectionResolutionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Resolve reserved Section 63 objection or MFI exhibit marking"
+)
+@router.post(
+    "/{case_id}/resolve-objection/{exhibit_number}",
+    response_model=ObjectionResolutionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Resolve reserved Section 63 objection or MFI exhibit marking (alias)"
+)
+def resolve_objection_endpoint(
+    case_id: str,
+    exhibit_number: str,
+    payload: ObjectionResolutionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_judge_only)
+):
+    """
+    Objection Resolution Gateway (Phase 22):
+    Resolves reserved Section 63 objections (OBJECTED_DECISION_RESERVED) or
+    converts identification exhibits (MARKED_FOR_IDENTIFICATION) to ADMITTED_AS_EXHIBIT or REJECTED.
+    Strictly JUDGE only.
+    """
+    service = TrialDispositionService(db)
+    return service.resolve_objection(case_id, exhibit_number, current_user, payload)
+
+
+@router.post(
+    "/{case_id}/exhibits/{exhibit_number}/disposal-order",
+    response_model=ExhibitDisposalOrderResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Issue statutory exhibit disposal order under BNSS 2023 Section 503"
+)
+@router.post(
+    "/{case_id}/exhibits/{exhibit_number}/disposal",
+    response_model=ExhibitDisposalOrderResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Issue statutory exhibit disposal order under BNSS 2023 Section 503 (alias)"
+)
+def order_exhibit_disposal_endpoint(
+    case_id: str,
+    exhibit_number: str,
+    payload: ExhibitDisposalOrderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_judge_only)
+):
+    """
+    Exhibit Disposal Order Gateway (Phase 22):
+    Issues statutory disposal directions under BNSS 2023 Section 503
+    (RETURNED_TO_OWNER, CONFISCATED, DESTROYED, RETAINED_FOR_APPEAL).
+    CRITICAL: DESTROYED orders strictly record judicial disposal; physical WORM files are NEVER deleted.
+    Strictly JUDGE only.
+    """
+    service = TrialDispositionService(db)
+    return service.order_exhibit_disposal(case_id, exhibit_number, current_user, payload)
+
+
+@router.post(
+    "/{case_id}/archive",
+    response_model=CaseArchivalResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Formally archive case docket upon trial judgment and complete exhibit disposal"
+)
+def archive_case_endpoint(
+    case_id: str,
+    payload: CaseArchivalRequest = Body(default_factory=CaseArchivalRequest),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_judge_only)
+):
+    """
+    Governed Docket Archival Gateway (Phase 22):
+    Transitions case.status from COMPLETED to ARCHIVED only when:
+    1. Case is COMPLETED.
+    2. Trial verdict has been pronounced.
+    3. All exhibits have definitive rulings (no unresolved objections or MFI).
+    4. All exhibits have statutory disposal orders.
+    Strictly JUDGE only.
+    """
+    service = TrialDispositionService(db)
+    return service.archive_case(case_id, current_user, payload)
+
+
+@router.get(
+    "/{case_id}/disposition",
+    response_model=CaseTrialDispositionRegisterResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve consolidated Trial Disposition and Exhibit Disposal Register"
+)
+def get_trial_disposition_endpoint(
+    case_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Trial Disposition Register Query (Phase 22):
+    Retrieves complete verdict, objection resolutions, disposal orders, and archival readiness.
+    Read-only case-scoped access.
+    """
+    service = TrialDispositionService(db)
+    return service.get_trial_disposition(case_id, current_user)
+
+
+@router.get(
+    "/{case_id}/exhibits/{exhibit_number}/disposal",
+    response_model=ExhibitDisposalOrderResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Inspect statutory disposal order and appellate hold status for an exhibit"
+)
+def get_exhibit_disposal_endpoint(
+    case_id: str,
+    exhibit_number: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_case_viewer)
+):
+    """
+    Exhibit Disposal Status Inspection (Phase 22):
+    Retrieves statutory disposal order and retention hold for a specific exhibit.
+    Read-only case-scoped access.
+    """
+    service = TrialDispositionService(db)
+    return service.get_exhibit_disposal(case_id, exhibit_number, current_user)
+
 
 
 

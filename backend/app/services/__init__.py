@@ -24,6 +24,7 @@ from .admissibility_service import AdmissibilityService
 from .export_bundle_service import ExportBundleService
 from .bundle_verification_service import BundleVerificationService
 from .exhibit_marking_service import ExhibitMarkingService
+from .trial_disposition_service import TrialDispositionService
 
 __all__ = [
     "BaseService",
@@ -36,6 +37,7 @@ __all__ = [
     "ExportBundleService",
     "BundleVerificationService",
     "ExhibitMarkingService",
+    "TrialDispositionService",
     "EvidenceService",
     "ForensicService",
     "AIService",

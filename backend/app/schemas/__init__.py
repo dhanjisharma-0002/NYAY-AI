@@ -69,8 +69,34 @@ from .exhibit_marking import (
     EvidenceExhibitStatusResponse,
     CaseExhibitRegisterResponse
 )
+from .trial_disposition import (
+    TrialVerdictEnum,
+    ResolvedRulingEnum,
+    DisposalTypeEnum,
+    TrialVerdictRequest,
+    TrialVerdictResponse,
+    ObjectionResolutionRequest,
+    ObjectionResolutionResponse,
+    ExhibitDisposalOrderRequest,
+    ExhibitDisposalOrderResponse,
+    CaseArchivalRequest,
+    CaseArchivalResponse,
+    CaseTrialDispositionRegisterResponse
+)
 
 __all__ = [
+    "TrialVerdictEnum",
+    "ResolvedRulingEnum",
+    "DisposalTypeEnum",
+    "TrialVerdictRequest",
+    "TrialVerdictResponse",
+    "ObjectionResolutionRequest",
+    "ObjectionResolutionResponse",
+    "ExhibitDisposalOrderRequest",
+    "ExhibitDisposalOrderResponse",
+    "CaseArchivalRequest",
+    "CaseArchivalResponse",
+    "CaseTrialDispositionRegisterResponse",
     "ExhibitRulingEnum",
     "TenderingPartyEnum",
     "ExhibitItemTypeEnum",

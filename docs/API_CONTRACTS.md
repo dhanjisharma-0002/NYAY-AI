@@ -1769,6 +1769,143 @@ Provides official courtroom presentation, advocate evidence tendering, and presi
   }
   ```
 
+---
+
+## 16. Judicial Trial Disposition, Objection Resolution & Exhibit Disposal Gateway (Phase 22 Specification)
+
+Governs trial adjudication, statutory evidence disposal orders, and final docket archival under **Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS 2023) Section 503** and **Bharatiya Sakshya Adhiniyam, 2023 (BSA 2023) Section 63**.
+
+### 16.1 Key Endpoints
+1. `POST /api/cases/{case_id}/disposition/verdict` *(alias: `/api/cases/{case_id}/verdict`, `/api/v1/cases/{case_id}/disposition/verdict`)*: Pronounce trial verdict and record judgment disposition (`JUDGE` only).
+2. `POST /api/cases/{case_id}/exhibits/{exhibit_number}/resolve-objection` *(alias: `/api/cases/{case_id}/resolve-objection/{exhibit_number}`, `/api/v1/...`)*: Resolve reserved Section 63 objection or MFI exhibit marking (`JUDGE` only).
+3. `POST /api/cases/{case_id}/exhibits/{exhibit_number}/disposal-order` *(alias: `/api/cases/{case_id}/exhibits/{exhibit_number}/disposal`, `/api/v1/...`)*: Pass statutory exhibit disposal order under BNSS Section 503 (`JUDGE` only).
+4. `POST /api/cases/{case_id}/archive` *(alias: `/api/v1/cases/{case_id}/archive`)*: Formal judicial case docket archival (`JUDGE` only).
+5. `GET /api/cases/{case_id}/disposition` *(alias: `/api/v1/cases/{case_id}/disposition`)*: Consolidated Trial Disposition & Exhibit Disposal Register.
+6. `GET /api/cases/{case_id}/exhibits/{exhibit_number}/disposal` *(alias: `/api/v1/...`)*: Single exhibit disposal order inspection.
+
+### 16.2 Schemas & Payloads
+
+#### A. Trial Verdict Pronouncement (`POST /cases/{case_id}/disposition/verdict`)
+- **Request Body** (`TrialVerdictRequest`):
+  ```json
+  {
+    "verdict": "CONVICTED",
+    "order_reference": "Judgment in Sessions Case No. 104/2026",
+    "court_bench": "Court of Sessions, Patiala House Courts, New Delhi",
+    "judicial_officer_name": "Hon'ble Justice S. K. Gupta",
+    "disposition_summary": "Accused convicted under Section 318(4) BNSS and Section 66 IT Act.",
+    "statutory_provisions": ["BNSS_2023_SECTION_250", "BSA_2023_SECTION_63"],
+    "appeal_limitation_days": 60
+  }
+  ```
+- **Response** `201 Created` (`TrialVerdictResponse`):
+  ```json
+  {
+    "success": true,
+    "disposition_id": "DISP-2026-A1B2C3D4",
+    "case_id": "CASE-UUID",
+    "case_number": "CR-2026-ABCD1234",
+    "verdict": "CONVICTED",
+    "court_bench": "Court of Sessions, Patiala House Courts, New Delhi",
+    "judicial_officer_name": "Hon'ble Justice S. K. Gupta",
+    "order_reference": "Judgment in Sessions Case No. 104/2026",
+    "disposition_summary": "Accused convicted under Section 318(4) BNSS and Section 66 IT Act.",
+    "appeal_limitation_days": 60,
+    "pronounced_by": "usr-judge-01",
+    "pronounced_by_username": "judge_gupta",
+    "pronounced_at": "2026-09-30T18:45:00Z",
+    "appellate_hold_expires_at": "2026-11-29T18:45:00Z",
+    "audit_id": "AUD-2026-E5F6G7H8"
+  }
+  ```
+
+#### B. Reserved Objection Resolution (`POST /cases/{case_id}/exhibits/{exhibit_number}/resolve-objection`)
+- **Request Body** (`ObjectionResolutionRequest`):
+  ```json
+  {
+    "final_ruling": "ADMITTED_AS_EXHIBIT",
+    "ruling_rationale": "Section 63 certificate verified authentic; defense objection overruled upon final arguments.",
+    "order_reference": "Judgment Section IV, para 18"
+  }
+  ```
+- **Response** `200 OK` (`ObjectionResolutionResponse`):
+  ```json
+  {
+    "success": true,
+    "resolution_id": "RES-2026-9A8B7C6D",
+    "case_id": "CASE-UUID",
+    "case_number": "CR-2026-ABCD1234",
+    "exhibit_number": "Ex. P-1",
+    "target_id": "EVD-2026-0001",
+    "target_type": "EVIDENCE",
+    "prior_ruling": "OBJECTED_DECISION_RESERVED",
+    "final_ruling": "ADMITTED_AS_EXHIBIT",
+    "ruling_rationale": "Section 63 certificate verified authentic; defense objection overruled upon final arguments.",
+    "resolved_by": "usr-judge-01",
+    "resolved_by_username": "judge_gupta",
+    "resolved_at": "2026-09-30T18:46:00Z",
+    "custody_event_id": "EVT-2026-77665544",
+    "audit_id": "AUD-2026-1A2B3C4D"
+  }
+  ```
+
+#### C. Statutory Exhibit Disposal Order (`POST /cases/{case_id}/exhibits/{exhibit_number}/disposal-order`)
+- **Request Body** (`ExhibitDisposalOrderRequest`):
+  ```json
+  {
+    "disposal_type": "RETAINED_FOR_APPEAL",
+    "statutory_authority": "BNSS_2023_SECTION_503",
+    "disposal_instructions": "Retain in Malkhana safe custody pending statutory appeal limitation period.",
+    "appellate_hold": true,
+    "order_reference": "Order on Disposal of Case Property, Para 5"
+  }
+  ```
+- **Response** `201 Created` (`ExhibitDisposalOrderResponse`):
+  ```json
+  {
+    "success": true,
+    "disposal_order_id": "DSP-2026-3C4D5E6F",
+    "case_id": "CASE-UUID",
+    "case_number": "CR-2026-ABCD1234",
+    "exhibit_number": "Ex. P-1",
+    "target_id": "EVD-2026-0001",
+    "target_type": "EVIDENCE",
+    "disposal_type": "RETAINED_FOR_APPEAL",
+    "statutory_authority": "BNSS_2023_SECTION_503",
+    "appellate_hold": true,
+    "ordered_by": "usr-judge-01",
+    "ordered_at": "2026-09-30T18:47:00Z",
+    "custody_event_id": "EVT-2026-33221100",
+    "audit_id": "AUD-2026-7E8F9A0B"
+  }
+  ```
+
+#### D. Governed Docket Archival (`POST /cases/{case_id}/archive`)
+- **Request Body** (`CaseArchivalRequest`):
+  ```json
+  {
+    "reason": "Trial concluded, judgment delivered, all exhibits disposed under BNSS Section 503.",
+    "order_reference": "Record Room Consignment Order No. 42"
+  }
+  ```
+- **Response** `200 OK` (`CaseArchivalResponse`):
+  ```json
+  {
+    "success": true,
+    "case_id": "CASE-UUID",
+    "case_number": "CR-2026-ABCD1234",
+    "previous_status": "COMPLETED",
+    "current_status": "ARCHIVED",
+    "verdict": "CONVICTED",
+    "total_exhibits_disposed": 3,
+    "appellate_holds_active": 1,
+    "archived_by": "usr-judge-01",
+    "archived_at": "2026-09-30T18:48:00Z",
+    "audit_id": "AUD-2026-ARCH-1234"
+  }
+  ```
+
+
 
 
 
