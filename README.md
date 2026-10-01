@@ -11,12 +11,12 @@ NYAYAI is an enterprise-grade digital evidence platform engineered to maintain c
 
 ## 1. Team & Module Ownership
 
-| Lead Engineer | Role | Module Ownership | Core Directories |
-| :--- | :--- | :--- | :--- |
-| **Ayushi Sharma** | Frontend & Intake Engineer | Evidence Intake Portal, Dashboard UI, Case UI | `frontend/` |
-| **Anu Sharma** | Forensic & AI Engineer | Metadata extraction, Magic Bytes, Tamper Detection | `forensic-engine/`, `ai-engine/` |
-| **Ridhi Mashi** | Evidence Intelligence Lead | Chain of Custody Ledger, Correlation, Explainability | `custody/`, `correlation/`, `explainability/` |
-| **Dhananjay Sharma** | Backend & System Lead | Orchestrator, REST APIs, Database, Reports, Deploy | `backend/`, `database/`, `reports/`, `deployment/`, `docs/`, `tests/` |
+| Lead Engineer        | Role                           | Module Ownership                                                    | Core Directories                                                      |
+
+| **Ayushi Sharma**    | Frontend & Intake Engineer     | Evidence Intake Portal, Dashboard UI, Case UI                       | `frontend/`                                                           |
+| **Anu Sharma**       | Forensic Engineer              | Metadata extraction, Magic Bytes, Forensic Analysis                 | `forensic-engine/`                                                    |
+| **Ridhi Mashi**      | **Evidence Intelligence Lead** | **AI Engine, Chain of Custody Ledger, Correlation, Explainability** | **`ai-engine/`, `custody/`, `correlation/`, `explainability/`**       |
+| **Dhananjay Sharma** | Backend & System Lead          | Orchestrator, REST APIs, Database, Reports, Deploy                  | `backend/`, `database/`, `reports/`, `deployment/`, `docs/`, `tests/` |
 
 ---
 
