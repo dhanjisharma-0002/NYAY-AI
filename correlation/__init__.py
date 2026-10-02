@@ -1,9 +1,10 @@
 """
-NYAYAI - Evidence Correlation Package
+NYAYAI - Evidence Correlation & Multi-Evidence Cross-Referencing
 Module Lead: Ridhi Masih (Evidence Intelligence Lead)
 """
 
-from .base import BaseCorrelationEngine
-from .engine import BaselineCorrelationEngine
+from .correlation.base import BaseCorrelationEngine
+from .correlation.engine import BaselineCorrelationEngine
+from .correlation import base, engine
 
-__all__ = ["BaseCorrelationEngine", "BaselineCorrelationEngine"]
+__all__ = ["BaseCorrelationEngine", "BaselineCorrelationEngine", "base", "engine"]

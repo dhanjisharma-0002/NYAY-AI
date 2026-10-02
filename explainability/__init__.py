@@ -1,9 +1,10 @@
 """
-NYAYAI - Court Admissibility Explainability Package
+NYAYAI - Court Admissibility & Judicial Explainability
 Module Lead: Ridhi Masih (Evidence Intelligence Lead)
 """
 
-from .base import BaseExplainer
-from .explainer import BaselineCourtExplainer
+from .explainability.base import BaseExplainer
+from .explainability.explainer import BaselineCourtExplainer
+from .explainability import base, explainer
 
-__all__ = ["BaseExplainer", "BaselineCourtExplainer"]
+__all__ = ["BaseExplainer", "BaselineCourtExplainer", "base", "explainer"]
