@@ -46,7 +46,7 @@ NYAYAI/
 │   │   └── metadata.py       # Magic bytes & EXIF inspector
 │   └── requirements.txt
 │
-├── ai-engine/                # AI Tamper & Synthesis Screening (Anu)
+├── ai-engine/                # AI Tamper & Synthesis Screening (Ridhi)
 │   ├── ai_engine/
 │   │   ├── base.py           # BaseAIAnalyzer contract
 │   │   └── tamper_detector.py# Heuristic screening with calibrated confidence
