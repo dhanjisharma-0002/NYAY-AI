@@ -1,6 +1,6 @@
 """
 NYAYAI - AI Analysis Engine Package
-Module Lead: Ridhi Mashi (Evidence Intelligence & Chain-of-Custody Engineer)
+Module Lead: Ridhi Masih (Evidence Intelligence & Chain-of-Custody Engineer)
 """
 
 from .base import BaseAIAnalyzer

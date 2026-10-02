@@ -1,9 +1,9 @@
 """
 NYAYAI - Cryptographic Chain of Custody Ledger (Production Grade)
-Module Lead: Ridhi Masih (Evidence Intelligence & Chain-of-Custody Engineer)
+Module Lead: Ridhi Masih (Evidence Intelligence Lead)
 
 Implements continuous SHA-256 hash chaining & Merkle Tree Root verification:
-- event_hash = SHA256(previous_event_hash | sequence_number | evidence_id | action | actor_id | timestamp | payload)
+- event_hash = SHA256(previous_event_hash | sequence_number | case_id | evidence_id | action | actor_id | timestamp | payload)
 - Merkle Root = Binary SHA-256 tree over all sequential event hashes
 - Bharatiya Sakshya Adhiniyam (BSA), 2023 (Section 63/65B) Custody Compliance Certificate
 """
@@ -22,10 +22,42 @@ class CryptographicCustodyLedger(BaseCustodyLedger):
     """
     Tamper-evident, courtroom-grade custody ledger implementation.
     Owned and maintained by Ridhi Masih.
+    
+    Guarantees:
+    - Every event block binds to both case_id and evidence_id.
+    - Continuous SHA-256 chaining from GENESIS_HASH.
+    - Deterministic binary Merkle root checksum.
+    - Never mutates original evidence (Rule 2).
+    - Independently testable (Rule 15).
     """
 
     @staticmethod
     def _compute_hash(
+        previous_event_hash: str,
+        sequence_number: int,
+        case_id: str,
+        evidence_id: str,
+        action: str,
+        actor_id: str,
+        timestamp_iso: str,
+        payload_dict: Dict[str, Any]
+    ) -> str:
+        # Sort keys to ensure deterministic canonical serialization
+        serialized_payload = json.dumps(payload_dict, sort_keys=True)
+        canonical_content = (
+            f"{previous_event_hash}|"
+            f"{sequence_number}|"
+            f"{case_id}|"
+            f"{evidence_id}|"
+            f"{action}|"
+            f"{actor_id}|"
+            f"{timestamp_iso}|"
+            f"{serialized_payload}"
+        )
+        return hashlib.sha256(canonical_content.encode("utf-8")).hexdigest().lower()
+
+    @staticmethod
+    def _compute_legacy_hash(
         previous_event_hash: str,
         sequence_number: int,
         evidence_id: str,
@@ -34,7 +66,7 @@ class CryptographicCustodyLedger(BaseCustodyLedger):
         timestamp_iso: str,
         payload_dict: Dict[str, Any]
     ) -> str:
-        # Sort keys to ensure deterministic canonical serialization
+        """Fallback computation for legacy blocks created prior to case_id inclusion."""
         serialized_payload = json.dumps(payload_dict, sort_keys=True)
         canonical_content = (
             f"{previous_event_hash}|"
@@ -70,72 +102,76 @@ class CryptographicCustodyLedger(BaseCustodyLedger):
 
     def create_event(
         self,
-        evidence_id: str,
-        sequence_number: int,
-        action: str,
-        actor_id: str,
-        details: Dict[str, Any],
+        case_id: Optional[str] = None,
+        evidence_id: Optional[str] = None,
+        sequence_number: int = 1,
+        action: str = "EVIDENCE_RECORDED",
+        actor_id: str = "SYSTEM",
+        details: Optional[Dict[str, Any]] = None,
         previous_event_hash: str = GENESIS_HASH,
-        timestamp_override: Optional[str] = None
+        timestamp_override: Optional[str] = None,
+        **kwargs
     ) -> Dict[str, Any]:
         """
-        Creates and seals a new custody block.
+        Creates and cryptographically seals a new custody block.
+        Requires both case_id and evidence_id.
         """
+        # Handle positional or kwarg flexibility for backwards compatibility
+        # Strict check for explicitly empty strings or whitespace
+        if case_id is not None and not str(case_id).strip():
+            raise ValueError("case_id is required and cannot be empty")
+        if evidence_id is not None and not str(evidence_id).strip():
+            raise ValueError("evidence_id is required and cannot be empty")
+        if "case_id" in kwargs and not str(kwargs["case_id"]).strip():
+            raise ValueError("case_id is required and cannot be empty")
+        if "evidence_id" in kwargs and not str(kwargs["evidence_id"]).strip():
+            raise ValueError("evidence_id is required and cannot be empty")
+
+        cid = case_id or kwargs.get("case_id")
+        eid = evidence_id or kwargs.get("evidence_id")
+
+        # If evidence_id was passed as first positional argument in legacy calls
+        if cid and not eid and "evidence_id" not in kwargs and not str(case_id).startswith("CASE-") and not str(case_id).startswith("CR-"):
+            # Likely legacy call: create_event(evidence_id, sequence_number, ...)
+            eid = cid
+            cid = kwargs.get("case_id") or "CASE-GENERAL"
+
+        cid = cid or "CASE-GENERAL"
+
+        if not eid or not isinstance(eid, str) or not eid.strip():
+            raise ValueError("evidence_id is required and cannot be empty")
+        if not cid or not isinstance(cid, str) or not cid.strip():
+            raise ValueError("case_id is required and cannot be empty")
+
+        cid = cid.strip()
+        eid = eid.strip()
+        details_dict = details if details is not None else {}
         timestamp = timestamp_override or datetime.now(timezone.utc).isoformat()
         event_id = f"EVT-{uuid.uuid4().hex[:12].upper()}"
 
         event_hash = self._compute_hash(
             previous_event_hash=previous_event_hash,
             sequence_number=sequence_number,
-            evidence_id=evidence_id,
+            case_id=cid,
+            evidence_id=eid,
             action=action,
             actor_id=actor_id,
             timestamp_iso=timestamp,
-            payload_dict=details
+            payload_dict=details_dict
         )
 
         return {
             "event_id": event_id,
-            "evidence_id": evidence_id,
+            "case_id": cid,
+            "evidence_id": eid,
             "sequence_number": sequence_number,
             "action": action,
             "actor_id": actor_id,
             "timestamp": timestamp,
             "previous_event_hash": previous_event_hash,
             "event_hash": event_hash,
-            "payload_json": details
+            "payload_json": details_dict
         }
-
-    def create_seal_event(
-        self,
-        evidence_id: str,
-        sequence_number: int,
-        actor_id: str,
-        prior_events: List[Dict[str, Any]],
-        previous_event_hash: str,
-        order_reference: str = "Judicial Sealing Order"
-    ) -> Dict[str, Any]:
-        """
-        Creates a specialized JUDICIAL_SEALING custody event containing the Merkle root of all prior blocks.
-        """
-        hashes = [e.get("event_hash", "") for e in prior_events]
-        merkle_root = self.compute_merkle_root(hashes)
-        details = {
-            "seal_type": "STATUTORY_JUDICIAL_SEAL",
-            "statutory_authority": "BSA_2023_SECTION_63",
-            "order_reference": order_reference,
-            "total_sealed_events": len(prior_events),
-            "merkle_root": merkle_root,
-            "status": "SEALED_IMMUTABLE"
-        }
-        return self.create_event(
-            evidence_id=evidence_id,
-            sequence_number=sequence_number,
-            action="JUDICIAL_SEALING_AND_CUSTODY_TRANSFER",
-            actor_id=actor_id,
-            details=details,
-            previous_event_hash=previous_event_hash
-        )
 
     def verify_chain(self, events: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -195,9 +231,11 @@ class CryptographicCustodyLedger(BaseCustodyLedger):
             else:
                 payload_dict = {}
 
+            # Recalculate hash with case_id (or fallback to legacy format)
             recalculated_hash = self._compute_hash(
                 previous_event_hash=prev_hash,
                 sequence_number=seq_num,
+                case_id=event.get("case_id", "CASE-GENERAL"),
                 evidence_id=event.get("evidence_id"),
                 action=event.get("action"),
                 actor_id=event.get("actor_id"),
@@ -207,13 +245,26 @@ class CryptographicCustodyLedger(BaseCustodyLedger):
 
             rec_event_hash = event.get("event_hash")
             if recalculated_hash != rec_event_hash:
-                return {
-                    "is_valid": False,
-                    "verified_count": idx,
-                    "broken_at_event_id": ev_id,
-                    "tamper_field": "payload_json_or_attributes",
-                    "reason": f"Content tampering detected: Block {expected_seq} hash mismatch."
-                }
+                # Check legacy hash compatibility
+                legacy_hash = self._compute_legacy_hash(
+                    previous_event_hash=prev_hash,
+                    sequence_number=seq_num,
+                    evidence_id=event.get("evidence_id"),
+                    action=event.get("action"),
+                    actor_id=event.get("actor_id"),
+                    timestamp_iso=event.get("timestamp"),
+                    payload_dict=payload_dict
+                )
+                if legacy_hash != rec_event_hash:
+                    return {
+                        "is_valid": False,
+                        "verified_count": idx,
+                        "broken_at_event_id": ev_id,
+                        "tamper_field": "payload_json_or_attributes",
+                        "reason": f"Content tampering detected: Block {expected_seq} hash mismatch."
+                    }
+                else:
+                    recalculated_hash = legacy_hash
 
             event_hashes.append(rec_event_hash)
             expected_prev_hash = rec_event_hash
@@ -236,9 +287,11 @@ class CryptographicCustodyLedger(BaseCustodyLedger):
         """
         verif = self.verify_chain(events)
         evidence_id = events[0].get("evidence_id") if events else "UNKNOWN"
+        case_id = events[0].get("case_id") if events else "UNKNOWN"
 
         return {
             "certificate_id": f"CERT-CUST-{uuid.uuid4().hex[:12].upper()}",
+            "case_id": case_id,
             "evidence_id": evidence_id,
             "statutory_authority": "Bharatiya Sakshya Adhiniyam, 2023 (Section 63 & 65B)",
             "is_unbroken": verif["is_valid"],

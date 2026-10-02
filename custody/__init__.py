@@ -1,6 +1,6 @@
 """
 NYAYAI - Chain of Custody Package
-Module Lead: Ridhi Mashi (Evidence Intelligence & Chain-of-Custody Engineer)
+Module Lead: Ridhi Masih (Evidence Intelligence Lead)
 """
 
 from .base import BaseCustodyLedger

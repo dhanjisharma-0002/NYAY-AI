@@ -1,6 +1,6 @@
 """
-NYAYAI - Evidence Correlation Engine Package
-Module Lead: Ridhi Mashi (Evidence Intelligence & Chain-of-Custody Engineer)
+NYAYAI - Evidence Correlation Package
+Module Lead: Ridhi Masih (Evidence Intelligence Lead)
 """
 
 from .base import BaseCorrelationEngine

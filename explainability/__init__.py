@@ -1,6 +1,6 @@
 """
-NYAYAI - Explainability Engine Package
-Module Lead: Ridhi Mashi (Evidence Intelligence & Chain-of-Custody Engineer)
+NYAYAI - Court Admissibility Explainability Package
+Module Lead: Ridhi Masih (Evidence Intelligence Lead)
 """
 
 from .base import BaseExplainer

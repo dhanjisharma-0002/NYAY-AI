@@ -1,6 +1,6 @@
 """
-NYAYAI - Evidence Correlation & Intelligence Engine (Phase 9 & Production Upgrade)
-Module Lead: Ridhi Masih (Evidence Intelligence & Chain-of-Custody Engineer)
+NYAYAI - Evidence Correlation & Multi-Evidence Cross-Referencing Engine
+Module Lead: Ridhi Masih (Evidence Intelligence Lead)
 
 Implements:
 1. Multi-Evidence Chronological Timeline Assembly:
@@ -12,26 +12,24 @@ Implements:
    - Shared Acquisition Source & Seizure device
    - Temporal Proximity (Intakes within 300 seconds)
    - Shared Media / MIME format
-   - Shared Generative AI & Editing Software Toolchain Footprints
    - Matching Camera Sensor / Device Serial Numbers
-   - Geolocation Coordinate Proximity
 3. Cross-Evidence Attribute Matching:
-   - Aggregates multi-file matches across cryptographic, metadata, and AI dimensions
+   - Aggregates multi-file matches across cryptographic, metadata, and hardware dimensions
 4. Evidence-Based Red Flag Detection (Strict Rule 14: No criminality claims):
    - Cryptographic hash mismatches / compromised status
    - Timestamp inconsistencies (e.g. post-dated capture times relative to intake)
    - Metadata and magic byte inconsistencies
    - Duplicate artifacts within the same case docket
    - Analysis anomalies (elevated AI risk scores >= 0.50)
-   - Coordinated synthetic media generation clusters
-5. Courtroom Intelligence Graph:
-   - Structured nodes and edges payload optimized for Ayushi Sharma's frontend graph renderer
+5. Legal & Proof Boundary:
+   - Clearly states that correlation indicators are investigative leads, NOT definitive forensic proof.
+6. Courtroom Intelligence Graph:
+   - Structured nodes and edges payload for UI visualization
 """
 
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import uuid
-import math
 from .base import BaseCorrelationEngine
 
 
@@ -39,6 +37,12 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
     """
     Core implementation of Evidence Intelligence & Case Correlation.
     Owned and maintained by Ridhi Masih.
+    
+    Guarantees:
+    - Binds strictly to case_id and preserves evidence_id across all references.
+    - Clearly distinguishes correlation indicators from proof.
+    - Never invents timestamps or claims forensic certainty.
+    - Independently testable.
     """
 
     @staticmethod
@@ -69,8 +73,22 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
         - relationships / links: pairwise relationship edges
         - cross_evidence_matches: multi-file attribute clusters
         - red_flags: objective evidence-based risk indicators
-        - graph: D3/SVG ready network topology for frontend visualization
+        - graph: network topology for visual representation
         """
+        if not case_id or not isinstance(case_id, str) or not case_id.strip():
+            raise ValueError("case_id is required and cannot be empty")
+        if evidence_items is None or not isinstance(evidence_items, list):
+            raise ValueError("evidence_items must be a list of evidence records")
+
+        case_id = case_id.strip()
+
+        correlation_disclaimer = (
+            "Notice of Evidentiary Limitation: Correlation indicators identify observable "
+            "structural, temporal, and cryptographic associations across artifacts. "
+            "Under the Bharatiya Sakshya Adhiniyam, 2023, these correlations serve as investigative leads "
+            "and do not constitute definitive forensic proof or criminal conclusions."
+        )
+
         if not evidence_items:
             return {
                 "success": True,
@@ -83,10 +101,11 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                 "links": [],
                 "cross_evidence_matches": [],
                 "red_flags": [],
+                "correlation_disclaimer": correlation_disclaimer,
                 "graph": {
                     "nodes": [],
                     "edges": [],
-                    "clusters": []
+                    "clusters": 0
                 }
             }
 
@@ -96,27 +115,29 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
         raw_timeline_events = []
 
         for item in evidence_items:
-            ev_id = item.get("evidence_id")
+            ev_id = item.get("evidence_id") or "UNKNOWN_EVIDENCE"
             fname = item.get("original_filename") or item.get("filename") or f"artifact_{ev_id}"
             ev_status = item.get("status") or "SECURED"
 
-            # Check primary evidence timestamp (created_at / intake_timestamp)
+            # Primary intake event
             intake_ts = item.get("created_at") or item.get("intake_timestamp")
             raw_timeline_events.append({
                 "event_id": f"INTAKE-{ev_id}",
+                "case_id": case_id,
                 "evidence_id": ev_id,
                 "filename": fname,
                 "event_type": "EVIDENCE_INTAKE",
                 "timestamp": intake_ts if intake_ts else None,
-                "description": f"Evidence artifact '{fname}' registered in case docket",
+                "description": f"Evidence artifact '{fname}' registered in case '{case_id}'",
                 "status": ev_status,
                 "source": "EVIDENCE_INTAKE"
             })
 
-            # Include documented custody events if present
+            # Custody events
             for c_ev in item.get("custody_events", []):
                 raw_timeline_events.append({
                     "event_id": c_ev.get("event_id") or f"EVT-{uuid.uuid4().hex[:8].upper()}",
+                    "case_id": case_id,
                     "evidence_id": ev_id,
                     "filename": fname,
                     "event_type": c_ev.get("event_type") or c_ev.get("action") or "CUSTODY_EVENT",
@@ -126,7 +147,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                     "source": "CUSTODY_LEDGER"
                 })
 
-            # Include documented metadata timestamps if present (e.g. camera capture time)
+            # Metadata capture timestamps
             meta = item.get("metadata") or {}
             ts_meta = meta.get("timestamps_metadata") or {}
             if isinstance(ts_meta, dict):
@@ -134,6 +155,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                 if capture_ts:
                     raw_timeline_events.append({
                         "event_id": f"CAPTURE-{ev_id}",
+                        "case_id": case_id,
                         "evidence_id": ev_id,
                         "filename": fname,
                         "event_type": "METADATA_CAPTURE_RECORDED",
@@ -143,7 +165,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                         "source": "METADATA"
                     })
 
-        # Sort timeline chronologically: valid timestamps first (ascending), missing timestamps preserved
+        # Sort timeline: valid timestamps first (ascending), missing timestamps preserved as None
         def timeline_sort_key(ev):
             dt = self._parse_iso_timestamp(ev.get("timestamp"))
             if dt is not None:
@@ -157,6 +179,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
             timeline.append({
                 "sequence_index": idx + 1,
                 "event_id": ev["event_id"],
+                "case_id": ev["case_id"],
                 "evidence_id": ev["evidence_id"],
                 "filename": ev["filename"],
                 "event_type": ev["event_type"],
@@ -172,14 +195,12 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
         relationships = []
         cross_matches = []
 
-        # Hash map for duplicate hash detection across all items
         hash_groups: Dict[str, List[Dict[str, Any]]] = {}
         for item in evidence_items:
             h = item.get("sha256_hash")
             if h and len(h) == 64:
                 hash_groups.setdefault(h.lower(), []).append(item)
 
-        # Pairwise relationship evaluation
         n = len(evidence_items)
         for i in range(n):
             for j in range(i + 1, n):
@@ -199,10 +220,11 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                 # Match 1: Identical SHA-256 Hash
                 if hash_a and hash_b and hash_a.lower() == hash_b.lower():
                     reason_text = (
-                        f"Evidence {id_a} and Evidence {id_b} share the exact same cryptographic "
-                        f"SHA-256 hash ({hash_a}), indicating identical binary content or duplicate files."
+                        f"Evidence {id_a} and Evidence {id_b} share identical cryptographic SHA-256 hash ({hash_a}), "
+                        f"indicating duplicate binary files."
                     )
                     rel = {
+                        "case_id": case_id,
                         "source_evidence_id": id_a,
                         "target_evidence_id": id_b,
                         "related_to": id_b,
@@ -213,6 +235,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                     }
                     relationships.append(rel)
                     cross_matches.append({
+                        "case_id": case_id,
                         "match_type": "EXACT_HASH_MATCH",
                         "evidence_ids": [id_a, id_b],
                         "matched_attribute": "sha256_hash",
@@ -224,9 +247,10 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                 # Match 2: Shared Acquisition Source
                 elif src_a and src_b and src_a.strip().lower() == src_b.strip().lower():
                     reason_text = (
-                        f"Evidence {id_a} and Evidence {id_b} were acquired from the identical origin source: '{src_a}'."
+                        f"Evidence {id_a} and Evidence {id_b} were acquired from identical source: '{src_a}'."
                     )
                     rel = {
+                        "case_id": case_id,
                         "source_evidence_id": id_a,
                         "target_evidence_id": id_b,
                         "related_to": id_b,
@@ -237,6 +261,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                     }
                     relationships.append(rel)
                     cross_matches.append({
+                        "case_id": case_id,
                         "match_type": "SOURCE_MATCH",
                         "evidence_ids": [id_a, id_b],
                         "matched_attribute": "source_description",
@@ -253,9 +278,10 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                     if diff_seconds <= 300:
                         reason_text = (
                             f"Evidence {id_a} and Evidence {id_b} were ingested within "
-                            f"{int(diff_seconds)} seconds of each other in the case docket."
+                            f"{int(diff_seconds)} seconds of each other in case {case_id}."
                         )
                         rel = {
+                            "case_id": case_id,
                             "source_evidence_id": id_a,
                             "target_evidence_id": id_b,
                             "related_to": id_b,
@@ -267,11 +293,12 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                         relationships.append(rel)
 
                 # Match 4: Shared Device / Camera Hardware Serial
-                cam_a = meta_a.get("camera_serial") or meta_a.get("device_serial")
-                cam_b = meta_b.get("camera_serial") or meta_b.get("device_serial")
+                cam_a = meta_a.get("camera_serial") or meta_a.get("device_serial") or meta_a.get("camera_serial_number") or (meta_a.get("exif_metadata") or {}).get("camera_serial_number")
+                cam_b = meta_b.get("camera_serial") or meta_b.get("device_serial") or meta_b.get("camera_serial_number") or (meta_b.get("exif_metadata") or {}).get("camera_serial_number")
                 if cam_a and cam_b and str(cam_a).strip() == str(cam_b).strip():
                     reason_text = f"Hardware match: Evidence {id_a} and {id_b} originate from device serial '{cam_a}'."
                     rel = {
+                        "case_id": case_id,
                         "source_evidence_id": id_a,
                         "target_evidence_id": id_b,
                         "related_to": id_b,
@@ -280,13 +307,14 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                         "confidence": 0.90,
                         "notes": reason_text
                     }
-                    if not any(r["source_evidence_id"] == id_a and r["target_evidence_id"] == id_b for r in relationships):
+                    if not any(r["source_evidence_id"] == id_a and r["target_evidence_id"] == id_b and r["relationship_type"] == "SHARED_HARDWARE_SERIAL" for r in relationships):
                         relationships.append(rel)
 
                 # Match 5: Shared Media Type
                 if mime_a and mime_b and mime_a.lower() == mime_b.lower() and mime_a not in ("application/octet-stream", ""):
                     reason_text = f"Both evidence items share identical MIME media format '{mime_a}'."
                     rel = {
+                        "case_id": case_id,
                         "source_evidence_id": id_a,
                         "target_evidence_id": id_b,
                         "related_to": id_b,
@@ -295,11 +323,11 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                         "confidence": 0.50,
                         "notes": reason_text
                     }
-                    if not any(r["source_evidence_id"] == id_a and r["target_evidence_id"] == id_b for r in relationships):
+                    if not any(r["source_evidence_id"] == id_a and r["target_evidence_id"] == id_b and r["relationship_type"] == "SAME_MEDIA_TYPE" for r in relationships):
                         relationships.append(rel)
 
         # ----------------------------------------------------------------------
-        # 3. Evidence-Based Red Flag Detection (Strict: No criminality claims)
+        # 3. Evidence-Based Red Flag Detection (Strict Rule 14: Objective)
         # ----------------------------------------------------------------------
         red_flags = []
 
@@ -308,21 +336,25 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
             meta = item.get("metadata") or {}
             anomalies = meta.get("anomalies") or []
             analyses = item.get("analysis_results") or []
+            if not analyses and item.get("ai_analysis"):
+                analyses = [item["ai_analysis"]]
             ev_status = item.get("status") or "SECURED"
             ts_meta = meta.get("timestamps_metadata") or {}
 
             # Red Flag 1: Hash Mismatch / Integrity Compromised
-            if ev_status in ("INTEGRITY_COMPROMISED", "STORAGE_ERROR", "MISMATCH"):
+            if ev_status in ("INTEGRITY_COMPROMISED", "STORAGE_ERROR", "MISMATCH", "COMPROMISED", "TAMPERED"):
                 red_flags.append({
                     "flag_id": f"FLAG-HASH-{uuid.uuid4().hex[:8].upper()}",
+                    "case_id": case_id,
                     "flag_type": "HASH_MISMATCH",
                     "evidence_id": ev_id,
                     "severity": "CRITICAL",
                     "description": (
                         f"Cryptographic hash mismatch: Vaulted artifact SHA-256 hash does not match "
-                        f"the registered baseline hash for evidence {ev_id}."
+                        f"registered baseline hash for evidence {ev_id}."
                     ),
                     "evidence_reference": {
+                        "case_id": case_id,
                         "evidence_id": ev_id,
                         "status": ev_status,
                         "sha256_hash": item.get("sha256_hash")
@@ -338,25 +370,28 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                 if dt_cap and dt_intake and dt_cap > dt_intake:
                     red_flags.append({
                         "flag_id": f"FLAG-TS-{uuid.uuid4().hex[:8].upper()}",
+                        "case_id": case_id,
                         "flag_type": "TIMESTAMP_INCONSISTENCY",
                         "evidence_id": ev_id,
                         "severity": "HIGH",
                         "description": (
                             f"Timestamp inconsistency: Documented capture timestamp ({cap_raw}) "
-                            f"occurs after the official evidence intake timestamp ({intake_raw})."
+                            f"occurs after official evidence intake timestamp ({intake_raw})."
                         ),
                         "evidence_reference": {
+                            "case_id": case_id,
                             "evidence_id": ev_id,
                             "capture_timestamp": cap_raw,
                             "intake_timestamp": intake_raw
                         }
                     })
 
-            # Red Flag 3: Metadata Inconsistency / Format Invalid
+            # Red Flag 3: Metadata Inconsistency
             if meta.get("format_valid") is False or anomalies:
                 anomaly_desc = "; ".join(str(a) for a in anomalies) if anomalies else "Magic bytes or header structural mismatch observed."
                 red_flags.append({
                     "flag_id": f"FLAG-META-{uuid.uuid4().hex[:8].upper()}",
+                    "case_id": case_id,
                     "flag_type": "METADATA_INCONSISTENCY",
                     "evidence_id": ev_id,
                     "severity": "HIGH",
@@ -365,6 +400,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                         f"anomalies in evidence {ev_id}: {anomaly_desc}"
                     ),
                     "evidence_reference": {
+                        "case_id": case_id,
                         "evidence_id": ev_id,
                         "format_valid": meta.get("format_valid"),
                         "magic_bytes": meta.get("magic_bytes"),
@@ -379,6 +415,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                 if not any(f["flag_type"] == "DUPLICATE_EVIDENCE" and ev_id in str(f.get("evidence_reference", {})) for f in red_flags):
                     red_flags.append({
                         "flag_id": f"FLAG-DUP-{uuid.uuid4().hex[:8].upper()}",
+                        "case_id": case_id,
                         "flag_type": "DUPLICATE_EVIDENCE",
                         "evidence_id": ev_id,
                         "severity": "MEDIUM",
@@ -387,29 +424,33 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                             f"SHA-256 hash with evidence {duplicate_ids}."
                         ),
                         "evidence_reference": {
+                            "case_id": case_id,
                             "evidence_id": ev_id,
                             "duplicate_evidence_ids": duplicate_ids,
                             "sha256_hash": item_hash
                         }
                     })
 
-            # Red Flag 5: Analysis Anomaly (elevated risk score / AI tamper indication)
+            # Red Flag 5: Analysis Anomaly
             for ar in analyses:
                 risk = ar.get("risk_score") or 0.0
                 pred = ar.get("prediction") or ""
                 findings = ar.get("findings") or []
-                if (isinstance(risk, (int, float)) and risk >= 0.50) or pred in ("TAMPER_DETECTED", "TAMPER_SUSPECTED", "SUSPICIOUS"):
+                assessment = ar.get("assessment") or ""
+                if (isinstance(risk, (int, float)) and risk >= 0.50) or pred in ("TAMPER_DETECTED", "TAMPER_SUSPECTED", "SUSPICIOUS") or assessment in ("medium_risk", "high_risk"):
                     findings_str = "; ".join(str(f) for f in findings[:2]) if findings else "Automated screening marked tamper likelihood."
                     red_flags.append({
                         "flag_id": f"FLAG-ANOMALY-{uuid.uuid4().hex[:8].upper()}",
+                        "case_id": case_id,
                         "flag_type": "ANALYSIS_ANOMALY",
                         "evidence_id": ev_id,
                         "severity": "HIGH",
                         "description": (
-                            f"Analysis anomaly: Automated screening flagged elevated risk score ({risk:.2f}) "
+                            f"Analysis anomaly: Automated screening flagged elevated risk score ({risk}) "
                             f"for evidence {ev_id}. Findings: {findings_str}"
                         ),
                         "evidence_reference": {
+                            "case_id": case_id,
                             "evidence_id": ev_id,
                             "risk_score": risk,
                             "prediction": pred,
@@ -418,7 +459,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
                     })
 
         # ----------------------------------------------------------------------
-        # 4. Courtroom Intelligence Graph Representation (For Ayushi's UI)
+        # 4. Courtroom Intelligence Graph Topology (Ayushi's UI)
         # ----------------------------------------------------------------------
         graph_nodes = []
         for item in evidence_items:
@@ -429,6 +470,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
 
             graph_nodes.append({
                 "id": ev_id,
+                "case_id": case_id,
                 "label": fname,
                 "type": "EVIDENCE_ARTIFACT",
                 "status": ev_status,
@@ -441,6 +483,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
         for idx, rel in enumerate(relationships):
             graph_edges.append({
                 "edge_id": f"EDGE-{idx + 1}",
+                "case_id": case_id,
                 "source": rel["source_evidence_id"],
                 "target": rel["target_evidence_id"],
                 "type": rel["relationship_type"],
@@ -459,6 +502,7 @@ class BaselineCorrelationEngine(BaseCorrelationEngine):
             "links": relationships,  # Backward compatibility alias
             "cross_evidence_matches": cross_matches,
             "red_flags": red_flags,
+            "correlation_disclaimer": correlation_disclaimer,
             "graph": {
                 "nodes": graph_nodes,
                 "edges": graph_edges,
