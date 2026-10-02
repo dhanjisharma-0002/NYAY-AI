@@ -1,6 +1,6 @@
 """
 NYAYAI - AI Analysis Engine Interface Contract
-Module Lead: Anu Sharma (Forensic & AI Analysis Engineer)
+Module Lead: Ridhi Mashi (Evidence Intelligence & Chain-of-Custody Engineer)
 
 Adheres to:
 - Rule 9: AI results must remain linked to evidence_id
