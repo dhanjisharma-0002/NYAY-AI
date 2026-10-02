@@ -1,6 +1,6 @@
 """
 NYAYAI - AI Analysis Engine Package
-Module Lead: Anu Sharma (Forensic & AI Analysis Engineer)
+Module Lead: Ridhi Mashi (Evidence Intelligence & Chain-of-Custody Engineer)
 """
 
 from .base import BaseAIAnalyzer
