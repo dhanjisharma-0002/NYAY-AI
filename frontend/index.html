@@ -28,12 +28,71 @@
   <link rel="stylesheet" href="css/responsive.css">
    <link rel="stylesheet" href="css/style.css">
    <link rel="stylesheet" href="css/variables.css">
+   <link rel="stylesheet" href="css/pages.css">
   
 
   <link rel="icon" type="image/png" href="images/favicon.png">
 </head>
 
-<body>
+<body> 
+
+  <!-- =========================================================
+     LOGIN SCREEN
+========================================================== -->
+
+<div id="login-screen" class="login-page">
+
+  <div class="login-card">
+
+    <div class="login-emblem">
+      ⚖
+    </div>
+
+    <h1>NYAYAI</h1>
+
+    <p>
+      Digital Evidence, Forensic Analysis
+      <br>
+      and Courtroom Intelligence Platform
+    </p>
+
+    <form id="login-form">
+
+      <label for="login-email">
+        Email
+      </label>
+
+      <input
+        id="login-email"
+        type="email"
+        placeholder="Enter your email"
+        required
+      >
+
+      <label for="login-password">
+        Password
+      </label>
+
+      <input
+        id="login-password"
+        type="password"
+        placeholder="Enter your password"
+        required
+      >
+
+      <button type="submit">
+        Sign In
+      </button>
+
+    </form>
+
+    <div class="login-footer">
+      Evidence Intelligence System
+    </div>
+
+  </div>
+
+</div>
 
   <!-- =========================================================
        SVG ICON SYSTEM
@@ -1210,6 +1269,41 @@
 
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
+
+  <script>
+  const loginScreen = document.getElementById("login-screen");
+  const mainApplication = document.getElementById("main-application");
+  const loginForm = document.getElementById("login-form");
+
+  // Check whether the user is already logged in
+  const loggedIn = localStorage.getItem("nyay_token");
+
+  if (loggedIn) {
+    loginScreen.style.display = "none";
+    mainApplication.style.display = "flex";
+  }
+
+  loginForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    if (!email || !password) {
+      alert("Please enter email and password.");
+      return;
+    }
+
+    // Temporary development login
+    localStorage.setItem("nyay_token", "development-session");
+
+    // Hide login
+    loginScreen.style.display = "none";
+
+    // Show existing NYAYAI application
+    mainApplication.style.display = "flex";
+  });
+</script>
 
 </body>
 
