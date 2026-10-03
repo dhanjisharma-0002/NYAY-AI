@@ -5,7 +5,22 @@
   "scripts": {
     "dev": "python -m http.server 3000 --directory ."
   },
-  "keywords": ["digital-evidence", "legal-tech", "forensics", "chain-of-custody"],
+  "keywords": [
+    "digital-evidence",
+    "legal-tech",
+    "forensics",
+    "chain-of-custody"
+  ],
   "author": "Ayushi Sharma",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "lucide-react": "^1.49.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.3.2"
+  }
 }
