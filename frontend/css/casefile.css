@@ -1,0 +1,51 @@
+/* casefile.css — "Case File" theme. Load AFTER variables.css and theme.css.
+   It overrides the tokens, so the whole app changes from this one file. */
+:root {
+  --paper:      #ece3c8;   /* manila desk */
+  --paper-2:    #e0d4ae;   /* sidebar, table header */
+  --surface:    #fbf8ee;   /* the paper sheets */
+  --ink:        #1d2230;
+  --ink-2:      #4b4f5c;
+  --ink-3:      #7c7a6d;
+  --rule:       #cdbf97;
+  --rule-strong:#b3a371;
+  --accent:     #a3262a;   /* stamp red */
+  --font-serif: "Source Serif 4", Georgia, serif;
+  --ok:#2f6b4f; --warn:#8a5a12; --bad:#a3262a; --info:#2c5a85; --neutral:#5b6070;
+}
+
+/* Sidebar looks like folder tabs: the active tab joins the page */
+.sidebar { background: var(--paper-2); }
+.nav-menu { padding-right: 0; }
+.nav-item { border-left: 0; border-radius: var(--radius) 0 0 var(--radius); }
+.nav-item.active { background: var(--paper); margin-right: -1px; border: 1px solid var(--rule-strong); border-right: 0; font-weight: 600; }
+.nav-item.active .icon { color: var(--accent); }
+
+/* Header like a file label */
+.top-header { border-bottom: 3px double var(--rule-strong); }
+.header-subtitle { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .02em; }
+
+/* Papers on the desk */
+.panel, .stat-card { background: var(--surface); border-color: var(--rule-strong); }
+.panel-header { border-bottom: 1px dashed var(--rule-strong); }
+.stat-card { border-top: 3px solid var(--accent); }   /* red top line of an index card */
+.stat-value { font-family: var(--font-mono); font-size: 30px; font-weight: 400; }
+
+/* Case numbers and IDs look typed */
+.data-table td:first-child { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-2); }
+.data-table th { background: var(--paper-2); }
+
+/* Rubber stamp: slightly rotated, heavier border */
+.data-table [class*="badge"], .data-table [class*="status-"], .stamp {
+  transform: rotate(-2deg);
+  border-width: 2px; letter-spacing: .12em;
+}
+
+/* Typed fields */
+input[type="text"], select, textarea { background: #fffdf5; }
+.btn-primary { background: var(--accent); border-color: var(--accent); }
+.btn-primary:hover { background: #861e22; }
+.dropzone { background: #fffdf5; border-color: var(--rule-strong); }
+
+/* Hash shown as grouped mono block */
+#precheck-hash, .hash-row code { letter-spacing: .04em; }
