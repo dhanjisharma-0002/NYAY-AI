@@ -1,0 +1,56 @@
+:root {
+    /* ===== MAIN COLORS ===== */
+
+    --bg: #f4f1eb;
+    --bg-soft: #eeeae2;
+
+    --surface: #ffffff;
+    --surface-2: #faf9f6;
+    --surface-3: #f1eee8;
+
+    --border: #d8d3c9;
+    --border-soft: #e7e3db;
+    --border-strong: #bdb7ac;
+
+    /* ===== BRAND ===== */
+
+    --gold: #b08a2e;
+    --gold-light: #c9a64b;
+
+    /* ===== TEXT ===== */
+
+    --text: #20252b;
+    --text-soft: #4f5863;
+    --muted: #7a828b;
+
+    /* ===== STATUS ===== */
+
+    --success: #23845f;
+    --warning: #a66a19;
+    --danger: #b44b4b;
+    --info: #416b91;
+
+    /* ===== SIDEBAR ===== */
+
+    --sidebar-bg: #202833;
+    --sidebar-text: #e9edf1;
+    --sidebar-muted: #aeb8c3;
+
+    /* ===== LAYOUT ===== */
+
+    --sidebar-width: 260px;
+    --topbar-height: 72px;
+
+    /* ===== SHAPE ===== */
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+
+    /* ===== SHADOW ===== */
+
+    --shadow:
+        0 3px 12px rgba(35, 38, 42, 0.08);
+
+    --transition: 180ms ease;
+}

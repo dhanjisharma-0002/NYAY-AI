@@ -1,0 +1,313 @@
+.app {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    min-height: 100vh;
+    background: var(--paper);
+}
+
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    border-right: 1px solid #353c44;
+}
+
+
+/* Brand */
+
+.sidebar__brand {
+    padding: 28px 24px 22px;
+    border-bottom: 1px solid #273144;
+}
+
+.sidebar__brand b {
+    color: #ffffff;
+    font-family: var(--font-serif);
+    font-size: 23px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.sidebar__brand span {
+    display: block;
+    margin-top: 7px;
+
+    color: #aeb8c8;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+}
+
+
+/* Navigation */
+
+.nav {
+    padding: 18px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    overflow: auto;
+    flex: 1;
+}
+
+.nav__group {
+    padding: 18px 12px 8px;
+
+    color: #78859a;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+
+/* Navigation links */
+
+.nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 11px 13px;
+
+    color: #b8c2d2;
+    text-decoration: none;
+
+    font-size: 14px;
+
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+
+    transition: 160ms ease;
+}
+
+.nav a:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+}
+
+.nav a[aria-current="page"] {
+    color: #ffffff;
+    font-weight: 500;
+
+    border-left-color: var(--accent);
+
+    background: rgba(181, 138, 24, 0.12);
+}
+
+
+/* Icons */
+
+.icon {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    flex: none;
+}
+
+
+/* Sidebar footer */
+
+.sidebar__foot {
+    padding: 18px 20px;
+
+    border-top: 1px solid #273144;
+
+    color: #aeb8c8;
+
+    font-size: var(--text-xs);
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+.main {
+    min-width: 0;
+    background: var(--paper);
+}
+
+
+/* =========================
+   TOP BAR
+========================= */
+
+.topbar {
+    height: var(--topbar-h);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 36px;
+
+    border-bottom: 1px solid var(--rule);
+
+    background: var(--surface);
+}
+
+
+.topbar input {
+    width: 320px;
+    max-width: 40vw;
+
+    padding: 8px 11px;
+
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius);
+
+    background: var(--surface);
+
+    color: var(--ink);
+
+    font: inherit;
+    font-size: var(--text-sm);
+}
+
+
+/* =========================
+   PAGE
+========================= */
+
+.page {
+    padding: 32px 36px;
+
+    max-width: 1400px;
+}
+
+
+/* Page heading */
+
+.page__head {
+    margin-bottom: 28px;
+}
+
+.page__head h1 {
+    margin: 0;
+
+    color: var(--ink);
+
+    font-family: var(--font-serif);
+    font-weight: 600;
+}
+
+.page__head p {
+    margin: 6px 0 0;
+
+    color: var(--ink-2);
+
+    font-size: var(--text-sm);
+}
+
+
+/* =========================
+   STATISTICS
+========================= */
+
+.grid-4 {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 18px;
+
+    margin-bottom: 26px;
+}
+
+
+.metric {
+    padding: 20px;
+
+    background: var(--surface);
+
+    border: 1px solid var(--rule);
+
+    border-radius: var(--radius-lg);
+
+    box-shadow: var(--shadow);
+}
+
+
+.metric__value {
+    margin-top: 12px;
+
+    color: var(--ink);
+
+    font-family: var(--font-serif);
+
+    font-size: var(--text-2xl);
+
+    font-weight: 600;
+
+    line-height: 1.1;
+
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+@media (max-width: 900px) {
+
+    .app {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        position: static;
+        height: auto;
+    }
+
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .page {
+        padding: 24px;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .grid-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        padding: 0 18px;
+    }
+
+    .page {
+        padding: 18px;
+    }
+
+} 
+.main-content {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}

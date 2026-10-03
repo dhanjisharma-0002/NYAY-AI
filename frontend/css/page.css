@@ -1,0 +1,202 @@
+/* =========================================================
+   NYAYAI LOGIN
+   Legal / Forensic / Human-designed style
+========================================================= */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #e7e1d7;
+}
+
+/* Login card */
+
+.login-card {
+  width: 100%;
+  max-width: 430px;
+  padding: 44px 42px 32px;
+
+  background: #f8f5ef;
+  border: 1px solid #cfc6b8;
+  border-radius: 5px;
+
+  box-shadow: 0 10px 28px rgba(55, 45, 35, 0.12);
+
+  position: relative;
+}
+
+/* Thin legal-style accent */
+
+.login-card::before {
+  content: "";
+  position: absolute;
+
+  top: 0;
+  left: 35px;
+  right: 35px;
+
+  height: 3px;
+
+  background: #7a3030;
+}
+
+/* Emblem */
+
+.login-emblem {
+  width: 52px;
+  height: 52px;
+
+  margin: 2px auto 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #b9afa1;
+  border-radius: 50%;
+
+  background: #eee9e0;
+
+  color: #7a3030;
+
+  font-size: 24px;
+}
+
+/* NYAYAI */
+
+.login-card h1 {
+  margin: 0 0 8px;
+
+  text-align: center;
+
+  color: #292722;
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: 30px;
+  font-weight: 600;
+
+  letter-spacing: 3px;
+}
+
+/* Description */
+
+.login-card p {
+  margin: 0 auto 30px;
+
+  max-width: 330px;
+
+  text-align: center;
+
+  color: #706a61;
+
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* Labels */
+
+.login-card label {
+  display: block;
+
+  margin: 17px 0 7px;
+
+  color: #39352f;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Inputs */
+
+.login-card input {
+  width: 100%;
+  height: 44px;
+
+  padding: 0 13px;
+
+  box-sizing: border-box;
+
+  background: #fcfaf6;
+
+  color: #292722;
+
+  border: 1px solid #cfc6b8;
+  border-radius: 4px;
+
+  outline: none;
+
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.login-card input:hover {
+  border-color: #aaa094;
+}
+
+.login-card input:focus {
+  border-color: #7a3030;
+  background: #ffffff;
+}
+
+.login-card input::placeholder {
+  color: #999187;
+}
+
+/* Sign in button */
+
+.login-card button {
+  width: 100%;
+  height: 44px;
+
+  margin-top: 27px;
+
+  border: 1px solid #6f2929;
+  border-radius: 4px;
+
+  background: #6f2929;
+  color: #ffffff;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  letter-spacing: 0.4px;
+
+  cursor: pointer;
+
+  transition: background-color 0.15s ease;
+}
+
+.login-card button:hover {
+  background: #572020;
+}
+
+/* Footer */
+
+.login-footer {
+  margin-top: 27px;
+  padding-top: 17px;
+
+  border-top: 1px solid #ddd6ca;
+
+  text-align: center;
+
+  color: #8b8378;
+
+  font-family: "Courier New", monospace;
+
+  font-size: 10px;
+
+  letter-spacing: 0.7px;
+
+  text-transform: uppercase;
+}
