@@ -1,4 +1,4 @@
-```python
+
 """Standardized forensic analysis report model."""
 
 from dataclasses import dataclass, field
@@ -33,4 +33,3 @@ class ForensicReport:
             "image_analysis": self.image_analysis,
             "anomalies": list(self.anomalies),
         }
-```
