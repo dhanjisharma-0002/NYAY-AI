@@ -31,4 +31,4 @@ jobs:
 
       - name: Run forensic engine tests
         run: |
-       python -m pytest tests/test_forensic_engine.py tests/test_forensic_report.py tests/test_forensic_report_integration.py tests/test_image_report_integration.py tests/test_image_exif_forensic.py -v
+          python -m pytest tests/test_forensic_engine.py tests/test_forensic_report.py tests/test_forensic_report_integration.py tests/test_image_report_integration.py tests/test_image_exif_forensic.py -v
