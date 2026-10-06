@@ -3,10 +3,12 @@ name: Forensic Engine Tests
 on:
   push:
     branches:
+      - feature/forensic-analysis
       - feature/ai-evidence-intelligence
   pull_request:
     branches:
       - main
+      - feature/forensic-analysis
       - feature/ai-evidence-intelligence
 
 jobs:
@@ -29,4 +31,4 @@ jobs:
 
       - name: Run forensic engine tests
         run: |
-          python -m pytest tests/test_forensic_engine.py -v
+          python -m pytest tests/test_forensic_engine.py tests/test_forensic_report.py -v
