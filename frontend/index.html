@@ -1,1311 +1,1130 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <meta
-    name="description"
-    content="NYAYAI - Digital Evidence, Forensic Analysis and Courtroom Intelligence Platform"
-  >
-
-  <title>NYAYAI | Digital Evidence Platform</title>
-
-  <!-- Google Fonts -->
+  <meta name="description" content="NYAY-AI - National Judicial & AI Evidence Intelligence Platform with Cryptographic Chain of Custody and BSA 2023 Admissibility">
+  <title>NYAY-AI — National Judicial & AI Evidence Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600&display=swap"
-    rel="stylesheet"
-  >
-
-  <!-- Application CSS -->
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/responsive.css">
-   <link rel="stylesheet" href="css/style.css">
-   <link rel="stylesheet" href="css/variables.css">
-   <link rel="stylesheet" href="css/pages.css">
-  
-
-  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
+<body>
 
-<body> 
+  <!-- ==============================================================================
+       1. LANDING & LOGIN SCREEN (HERO & SECURE PORTAL)
+       ============================================================================== -->
+  <div id="landing-view">
+    <div class="landing-hero">
+      <div class="hero-seal-badge">
+        <span>⚖️</span> Cryptographically Verified Environment • BSA 2023 Compliant
+      </div>
+      <h1 class="landing-title">
+        Digital Evidence. <span>Intelligent Justice.</span>
+      </h1>
+      <p class="landing-subtitle">
+        AI-powered forensic intelligence and courtroom-ready evidence governance. National judicial infrastructure for electronic records integrity and chain-of-custody verification.
+      </p>
 
-  <!-- =========================================================
-     LOGIN SCREEN
-========================================================== -->
-
-<div id="login-screen" class="login-page">
-
-  <div class="login-card">
-
-    <div class="login-emblem">
-      ⚖
-    </div>
-
-    <h1>NYAYAI</h1>
-
-    <p>
-      Digital Evidence, Forensic Analysis
-      <br>
-      and Courtroom Intelligence Platform
-    </p>
-
-    <form id="login-form">
-
-      <label for="login-email">
-        Email
-      </label>
-
-      <input
-        id="login-email"
-        type="email"
-        placeholder="Enter your email"
-        required
-      >
-
-      <label for="login-password">
-        Password
-      </label>
-
-      <input
-        id="login-password"
-        type="password"
-        placeholder="Enter your password"
-        required
-      >
-
-      <button type="submit">
-        Sign In
-      </button>
-
-    </form>
-
-    <div class="login-footer">
-      Evidence Intelligence System
-    </div>
-
-  </div>
-
-</div>
-
-  <!-- =========================================================
-       SVG ICON SYSTEM
-  ========================================================== -->
-
-  <svg
-    width="0"
-    height="0"
-    style="position:absolute"
-    aria-hidden="true"
-  >
-
-    <symbol id="i-dashboard" viewBox="0 0 24 24">
-      <rect x="3" y="3" width="7" height="8"></rect>
-      <rect x="14" y="3" width="7" height="5"></rect>
-      <rect x="14" y="12" width="7" height="9"></rect>
-      <rect x="3" y="15" width="7" height="6"></rect>
-    </symbol>
-
-    <symbol id="i-cases" viewBox="0 0 24 24">
-      <path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H3z"></path>
-      <path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v2"></path>
-    </symbol>
-
-    <symbol id="i-evidence" viewBox="0 0 24 24">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-      <polyline points="17 8 12 3 7 8"></polyline>
-      <line x1="12" y1="3" x2="12" y2="15"></line>
-    </symbol>
-
-    <symbol id="i-custody" viewBox="0 0 24 24">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-    </symbol>
-
-    <symbol id="i-report" viewBox="0 0 24 24">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-      <polyline points="14 2 14 8 20 8"></polyline>
-      <line x1="8" y1="13" x2="16" y2="13"></line>
-      <line x1="8" y1="17" x2="16" y2="17"></line>
-    </symbol>
-
-    <symbol id="i-shield" viewBox="0 0 24 24">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-      <polyline points="9 12 11 14 15 10"></polyline>
-    </symbol>
-
-    <symbol id="i-settings" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="3"></circle>
-      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.4 1.4-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-2v-.5a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-1.4-1.4.06-.06A1.7 1.7 0 0 0 9.4 15a1.7 1.7 0 0 0-1.56-1.03H7v-2h.84A1.7 1.7 0 0 0 9.4 11a1.7 1.7 0 0 0-.34-1.88L9 9.06l1.4-1.4.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 13.37 6.5V6h2v.5A1.7 1.7 0 0 0 16.4 8a1.7 1.7 0 0 0 1.88-.34l.06-.06 1.4 1.4-.06.06A1.7 1.7 0 0 0 19.4 11a1.7 1.7 0 0 0 1.56 1.03H22v2h-1.04A1.7 1.7 0 0 0 19.4 15z"></path>
-    </symbol>
-
-  </svg>
-
-
-  <!-- =========================================================
-       APPLICATION
-  ========================================================== -->
-
-  <div class="app-layout">
-
-
-    <!-- =======================================================
-         SIDEBAR
-    ======================================================== -->
-
-    <aside class="sidebar">
-
-      <!-- Brand -->
-      <div class="brand">
-
-        <div class="brand-emblem">
-          N
+      <!-- 4 Pillars -->
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <div class="pillar-icon">🔒</div>
+          <h3 class="pillar-title">Evidence Integrity</h3>
+          <p class="pillar-desc">WORM storage vault with deterministic SHA-256 fingerprinting and zero-spoliation guarantees.</p>
         </div>
-
-        <div class="brand-text">
-          <span class="brand-name">
-            NYAYAI
-          </span>
-
-          <span class="brand-sub">
-            Digital Evidence & Investigation Platform
-          </span>
+        <div class="pillar-card">
+          <div class="pillar-icon">🧠</div>
+          <h3 class="pillar-title">AI Intelligence</h3>
+          <p class="pillar-desc">Non-destructive deepfake, synthesis, and tamper screening with verifiable technical confidence.</p>
         </div>
-
+        <div class="pillar-card">
+          <div class="pillar-icon">⛓️</div>
+          <h3 class="pillar-title">Chain of Custody</h3>
+          <p class="pillar-desc">Immutable cryptographically-chained event ledger adhering to ISO/IEC 27037 forensic standards.</p>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">📜</div>
+          <h3 class="pillar-title">Judicial Verification</h3>
+          <p class="pillar-desc">Section 63/65B certificates, QR authenticity gateways, and courtroom exhibit markings.</p>
+        </div>
       </div>
 
+      <!-- Login Card -->
+      <div class="login-section-card">
+        <div class="panel-header" style="margin-bottom: 14px;">
+          <h3 class="panel-title">Courtroom Authentication Portal</h3>
+        </div>
+        <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 16px;">
+          Select a verified judicial identity or enter official credentials:
+        </p>
 
-      <!-- Navigation -->
-      <nav class="nav-menu" aria-label="Main navigation">
+        <!-- Quick Demo Persona Pills -->
+        <div class="login-persona-pills">
+          <button class="persona-pill active" data-user="investigator_dhananjay" data-role="SYSTEM_LEAD">
+            Lead Investigator (Dhananjay Sharma)
+          </button>
+          <button class="persona-pill" data-user="admin_nyay" data-role="ADMIN">
+            Chief Administrator (ADM-DL)
+          </button>
+          <button class="persona-pill" data-user="judge_bench_086c7ec7@nyayai.gov.in" data-role="JUDGE">
+            Judicial Magistrate (Judge Bench)
+          </button>
+          <button class="persona-pill" data-user="shared_a636c605@nyayai.gov.in" data-role="LAWYER">
+            Legal Counsel / Advocate
+          </button>
+        </div>
 
-        <button
-          class="nav-item active"
-          data-tab="dashboard"
-          id="nav-dashboard"
-        >
-          <span class="nav-icon">
-            <svg class="icon">
-              <use href="#i-dashboard"></use>
-            </svg>
-          </span>
+        <form id="form-login" class="form-grid" style="grid-template-columns: 1fr;">
+          <div class="form-group">
+            <label for="login-username">Identity / Username</label>
+            <input type="text" id="login-username" value="investigator_dhananjay" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" value="SecureNyayPassword2026!" required autocomplete="current-password">
+          </div>
+          <div class="form-actions" style="margin-top: 8px; display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-primary" id="btn-login" style="flex: 1;">
+              Sign In to Environment
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-enter-workspace">
+              Enter Platform
+            </button>
+          </div>
+        </form>
 
-          <span>Dashboard</span>
+        <div style="margin-top: 18px; text-align: center; font-size: 0.76rem; color: var(--text-dim);">
+          Strict RBAC Enforced • All Transactions Cryptographically Signed
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       2. GLOBAL APP SHELL (SIDEBAR & HEADER)
+       ============================================================================== -->
+  <div class="app-layout" id="app-shell">
+    
+    <!-- Left Sidebar -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="brand" id="brand-logo-trigger" title="NYAY-AI Command Platform">
+        <div class="brand-emblem">⚖️</div>
+        <div class="brand-text">
+          <span class="brand-name">NYAY-AI</span>
+          <span class="brand-sub">Judicial & Forensics AI</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <div class="nav-section-title">Core Operations</div>
+        <button class="nav-item active" data-tab="command-center" id="nav-command-center">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Command Center</span>
+        </button>
+        <button class="nav-item" data-tab="cases" id="nav-cases">
+          <span class="nav-icon">📁</span>
+          <span class="nav-label">Cases & Dockets</span>
+          <span class="nav-badge" id="badge-nav-cases">-</span>
+        </button>
+        <button class="nav-item" data-tab="evidence-vault" id="nav-evidence-vault">
+          <span class="nav-icon">🔒</span>
+          <span class="nav-label">Evidence Vault</span>
+          <span class="nav-badge" id="badge-nav-evidence">-</span>
         </button>
 
-
-        <button
-          class="nav-item"
-          data-tab="cases"
-          id="nav-cases"
-        >
-          <span class="nav-icon">
-            <svg class="icon">
-              <use href="#i-cases"></use>
-            </svg>
-          </span>
-
-          <span>Cases &amp; Investigations</span>
+        <div class="nav-section-title">Forensic & AI Engines</div>
+        <button class="nav-item" data-tab="forensics" id="nav-forensics">
+          <span class="nav-icon">🔬</span>
+          <span class="nav-label">Forensic Analysis</span>
+        </button>
+        <button class="nav-item" data-tab="ai-intelligence" id="nav-ai-intelligence">
+          <span class="nav-icon">🧠</span>
+          <span class="nav-label">AI Intelligence</span>
+        </button>
+        <button class="nav-item" data-tab="explainability" id="nav-explainability">
+          <span class="nav-icon">💡</span>
+          <span class="nav-label">Explainability</span>
+        </button>
+        <button class="nav-item" data-tab="correlation" id="nav-correlation">
+          <span class="nav-icon">🕸️</span>
+          <span class="nav-label">Correlation Graph</span>
+        </button>
+        <button class="nav-item" data-tab="timeline" id="nav-timeline">
+          <span class="nav-icon">⏱️</span>
+          <span class="nav-label">Chronology Timeline</span>
         </button>
 
-
-        <button
-          class="nav-item"
-          data-tab="intake"
-          id="nav-intake"
-        >
-          <span class="nav-icon">
-            <svg class="icon">
-              <use href="#i-evidence"></use>
-            </svg>
-          </span>
-
-          <span>Evidence Intake</span>
+        <div class="nav-section-title">Courtroom & Governance</div>
+        <button class="nav-item" data-tab="custody" id="nav-custody">
+          <span class="nav-icon">⛓️</span>
+          <span class="nav-label">Chain of Custody</span>
         </button>
-
-
-        <button
-          class="nav-item"
-          data-tab="custody"
-          id="nav-custody"
-        >
-          <span class="nav-icon">
-            <svg class="icon">
-              <use href="#i-custody"></use>
-            </svg>
-          </span>
-
-          <span>Chain of Custody</span>
+        <button class="nav-item" data-tab="reports" id="nav-reports">
+          <span class="nav-icon">📜</span>
+          <span class="nav-label">Court Reports (BSA)</span>
         </button>
-
-
-        <button
-          class="nav-item"
-          data-tab="reports"
-          id="nav-reports"
-        >
-          <span class="nav-icon">
-            <svg class="icon">
-              <use href="#i-report"></use>
-            </svg>
-          </span>
-
-          <span>Court Reports</span>
+        <button class="nav-item" data-tab="verification" id="nav-verification">
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label">Judicial Verification</span>
         </button>
-
+        <button class="nav-item" data-tab="bundles" id="nav-bundles">
+          <span class="nav-icon">📦</span>
+          <span class="nav-label">Discovery Bundles</span>
+        </button>
+        <button class="nav-item" data-tab="exhibits" id="nav-exhibits">
+          <span class="nav-icon">🏷️</span>
+          <span class="nav-label">Exhibits Registry</span>
+        </button>
+        <button class="nav-item" data-tab="trial-disposition" id="nav-trial-disposition">
+          <span class="nav-icon">⚖️</span>
+          <span class="nav-label">Trial Disposition</span>
+        </button>
+        <button class="nav-item" data-tab="audit-trail" id="nav-audit-trail">
+          <span class="nav-icon">📑</span>
+          <span class="nav-label">Audit Trail</span>
+        </button>
       </nav>
 
-
-      <!-- Sidebar Bottom -->
+      <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-
-        <div class="compliance-badge">
-
-          <span class="badge-dot"></span>
-
-          <span>
-            BSA 2023 · Evidence Records
-          </span>
-
+        <div class="system-status-chip" id="system-status-chip">
+          <span class="status-dot" id="system-status-dot"></span>
+          <span id="system-status-text">Backend Connected (:8000)</span>
         </div>
 
-
-        <!-- Neutral user section -->
-        <div class="user-profile">
-
-          <div class="user-avatar">
-            U
+        <div class="user-profile-widget">
+          <div class="user-avatar" id="sidebar-user-avatar">DS</div>
+          <div class="user-meta">
+            <span class="user-name" id="sidebar-user-name">Dhananjay Sharma</span>
+            <span class="user-role-badge" id="sidebar-user-role">SYSTEM LEAD</span>
           </div>
-
-          <div class="user-info">
-
-            <span class="user-name">
-              Current  User
-            </span>
-
-            <span class="user-role">
-              Investigator
-            </span>
-
-          </div>
-
         </div>
 
+        <select class="role-quick-switch" id="role-quick-switcher" title="Switch User Role Persona">
+          <option value="SYSTEM_LEAD">Persona: System Lead / Investigator</option>
+          <option value="ADMIN">Persona: Chief Administrator</option>
+          <option value="JUDGE">Persona: Judicial Magistrate (Judge)</option>
+          <option value="LAWYER">Persona: Legal Counsel / Advocate</option>
+        </select>
       </div>
-
     </aside>
 
-
-
-    <!-- =======================================================
-         MAIN CONTENT
-    ======================================================== -->
-
-    <main class="main-content">
-
-
-      <!-- =====================================================
-           HEADER
-      ====================================================== -->
-
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      
+      <!-- Top Header -->
       <header class="top-header">
-
-        <div class="header-title">
-
-          <h1 id="page-title">
-            Digital Evidence Register
-          </h1>
-
-          <p class="header-subtitle">
-            Review cases , evidence , custody records, and generate courtroom reports.
-          </p>
-
-        </div>
-
-
-        <div class="header-actions">
-
-          <span
-            class="system-status"
-            id="system-status-indicator"
-          >
-
-            <span class="status-pulse"></span>
-
-            System : Checking...
-
-          </span>
-
-
-          <button
-            class="btn btn-primary"
-            id="btn-quick-intake"
-          >
-            + New Evidence
+        <div class="header-left">
+          <button class="sidebar-toggle-btn" id="btn-toggle-sidebar" title="Toggle Sidebar">
+            ☰
           </button>
-
+          <div class="current-case-selector">
+            <span style="color:var(--text-dim); font-size:0.8rem;">DOCKET:</span>
+            <select class="case-select-dropdown" id="global-case-selector">
+              <option value="">Select Case Docket...</option>
+            </select>
+          </div>
         </div>
 
+        <div class="header-center">
+          <button class="global-search-trigger" id="btn-global-search-trigger">
+            <div class="search-placeholder-group">
+              <span>🔍</span>
+              <span>Search cases, evidence ID, reports, exhibits...</span>
+            </div>
+            <span class="shortcut-kbd">Ctrl+K</span>
+          </button>
+        </div>
+
+        <div class="header-right">
+          <div class="compliance-badge-top" title="Bharatiya Sakshya Adhiniyam 2023 & ISO 27037 Forensics Certified">
+            <span>🛡️</span>
+            <span>Cryptographically Verified</span>
+          </div>
+          <button class="btn btn-outline btn-sm header-action-btn" id="btn-header-quick-case">+ New Case</button>
+          <button class="btn btn-primary btn-sm header-action-btn" id="btn-header-quick-intake">+ Evidence Intake</button>
+          <button class="btn btn-secondary btn-sm" id="btn-header-logout" title="Sign Out">Logout</button>
+        </div>
       </header>
 
+      <!-- Main Content Container with 15 Tabs -->
+      <main class="main-content">
 
-
-      <!-- =====================================================
-           DASHBOARD
-      ====================================================== -->
-
-      <section
-        class="tab-view active"
-        id="tab-dashboard"
-      >
-
-        <!-- Statistics -->
-
-        <div class="stats-grid">
-
-
-          <div class="stat-card">
-
-            <div class="stat-label">
-              Active Cases
+        <!-- ==============================================================================
+             3. SECTION: COMMAND CENTER DASHBOARD
+             ============================================================================== -->
+        <section class="tab-pane active" id="tab-command-center">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Command Center</h1>
+              <p class="page-subtitle">Deterministic SHA-256 Hashing • Tamper Screening • Cryptographic Audit Trails</p>
             </div>
-
-            <div
-              class="stat-value"
-              id="stat-cases-count"
-            >
-              --
+            <div class="page-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-dashboard">↻ Refresh Metrics</button>
+              <button class="btn btn-primary btn-sm" id="btn-dash-new-case">+ Register Docket</button>
             </div>
-
-            <div class="stat-desc">
-              Currently registered investigations
-            </div>
-
           </div>
 
-
-          <div class="stat-card">
-
-            <div class="stat-label">
-              Evidence Items
+          <!-- Top Real Metrics Grid -->
+          <div class="metrics-grid" id="dashboard-metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Total Cases</span><span class="metric-icon">📁</span></div>
+              <div class="metric-value" id="metric-total-cases">-</div>
+              <div class="metric-desc">Isolated investigative dockets</div>
             </div>
-
-            <div
-              class="stat-value"
-              id="stat-evidence-count"
-            >
-              --
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Evidence Items</span><span class="metric-icon">🔒</span></div>
+              <div class="metric-value" id="metric-evidence-items">-</div>
+              <div class="metric-desc">Vaulted under WORM protection</div>
             </div>
-
-            <div class="stat-desc">
-              Securely stored evidence
+            <div class="metric-card alert">
+              <div class="metric-header"><span class="metric-label">Requires Attention</span><span class="metric-icon">⚠</span></div>
+              <div class="metric-value" id="metric-attention-cases">-</div>
+              <div class="metric-desc">Pending forensic or sealing steps</div>
             </div>
-
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Court Reports</span><span class="metric-icon">📜</span></div>
+              <div class="metric-value" id="metric-court-reports">-</div>
+              <div class="metric-desc">Section 63/65B affidavits generated</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-header"><span class="metric-label">Integrity Status</span><span class="metric-icon">🛡️</span></div>
+              <div class="metric-value" style="color:var(--color-success); font-size:1.4rem;" id="metric-integrity-status">AUTHENTIC</div>
+              <div class="metric-desc">Zero hash spoliation recorded</div>
+            </div>
           </div>
 
-
-          <div class="stat-card">
-
-            <div class="stat-label">
-              Custody Records
-            </div>
-
-            <div
-              class="stat-value"
-              id="stat-blocks-count"
-            >
-              --
-            </div>
-
-            <div class="stat-desc">
-              Verified custody events
-            </div>
-
-          </div>
-
-
-          <div class="stat-card alert">
-
-            <div class="stat-label">
-              Evidence Integrity
-            </div>
-
-            <div
-              class="stat-value"
-              id="stat-integrity-status"
-            >
-              --
-            </div>
-
-            <div class="stat-desc">
-              Latest verification status
-            </div>
-
-          </div>
-
-        </div>
-
-
-
-        <!-- Dashboard Panels -->
-
-        <div class="dashboard-grid">
-
-
-          <!-- Recent Cases -->
-
+          <!-- Activity Lifecycle Pipeline -->
           <div class="panel">
-
             <div class="panel-header">
-
-              <div>
-                <h2>
-                  Recent Investigations
-                </h2>
-
-                <p class="panel-subtitle">
-                  Recently added cases 
-                </p>
+              <h3 class="panel-title">Judicial Evidence Lifecycle Pipeline</h3>
+              <span class="badge badge-info">BSA 2023 End-to-End Governance</span>
+            </div>
+            <div class="pipeline-container">
+              <div class="pipeline-step completed">
+                <div class="step-circle">1</div>
+                <div class="step-label">Evidence Intake</div>
+                <div class="step-desc">WORM Vault</div>
               </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step completed">
+                <div class="step-circle">2</div>
+                <div class="step-label">Forensics</div>
+                <div class="step-desc">Magic Bytes & EXIF</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step completed">
+                <div class="step-circle">3</div>
+                <div class="step-label">AI Analysis</div>
+                <div class="step-desc">Tamper Screener</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step completed">
+                <div class="step-circle">4</div>
+                <div class="step-label">Explainability</div>
+                <div class="step-desc">Reasoning Links</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step completed">
+                <div class="step-circle">5</div>
+                <div class="step-label">Correlation</div>
+                <div class="step-desc">Cross-Evidence</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step completed">
+                <div class="step-circle">6</div>
+                <div class="step-label">Court Report</div>
+                <div class="step-desc">Section 63 Cert</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step completed">
+                <div class="step-circle">7</div>
+                <div class="step-label">Verification</div>
+                <div class="step-desc">Docket Sealing</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step active">
+                <div class="step-circle">8</div>
+                <div class="step-label">Exhibits</div>
+                <div class="step-desc">Judicial Marking</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step">
+                <div class="step-circle">9</div>
+                <div class="step-label">Disposition</div>
+                <div class="step-desc">Trial Judgment</div>
+              </div>
+            </div>
+          </div>
 
-              <button
-                class="btn btn-sm btn-outline"
-                id="btn-view-all-cases"
-              >
-                View all
-              </button>
-
+          <!-- Dashboard Two-Column Grid -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+            
+            <!-- Case Intelligence Section -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3 class="panel-title">Case Intelligence Stream</h3>
+                <button class="btn btn-outline btn-sm" onclick="navigateToTab('cases')">View All Dockets ➔</button>
+              </div>
+              <div class="table-container">
+                <table class="data-table" id="table-dash-cases">
+                  <thead>
+                    <tr>
+                      <th>Case Docket</th>
+                      <th>Title & Jurisdiction</th>
+                      <th>Status</th>
+                      <th>Evidence</th>
+                      <th>Integrity</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-dash-cases">
+                    <tr><td colspan="6" class="text-center">Connecting to real API dockets...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
+            <!-- Integrity Panel -->
+            <div class="panel panel-gold">
+              <div class="panel-header">
+                <h3 class="panel-title">Cryptographic Integrity Panel</h3>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="padding: 12px; background: rgba(10, 14, 22, 0.6); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                  <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase;">SHA-256 Vault Sealing</div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+                    <span style="font-weight: 600; color: var(--color-success);">AUTHENTICATED (WORM)</span>
+                    <span class="badge badge-success">ACTIVE</span>
+                  </div>
+                </div>
 
+                <div style="padding: 12px; background: rgba(10, 14, 22, 0.6); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                  <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase;">Chain of Custody Blockchain</div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+                    <span style="font-weight: 600; color: var(--color-success);">CHAIN UNBROKEN</span>
+                    <span class="badge badge-success">VERIFIED</span>
+                  </div>
+                </div>
+
+                <div style="padding: 12px; background: rgba(10, 14, 22, 0.6); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                  <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase;">BSA 2023 Section 63/65B Sealing</div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+                    <span style="font-weight: 600; color: var(--text-gold);" id="dash-sealed-status">FORMAL DOCKET SEALS</span>
+                    <span class="badge badge-info">COMPLIANT</span>
+                  </div>
+                </div>
+
+                <div style="padding: 12px; background: rgba(10, 14, 22, 0.6); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                  <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase;">Public QR Verification Gate</div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+                    <span style="font-weight: 600; color: var(--color-success);">GATEWAY OPERATIONAL</span>
+                    <span class="badge badge-success">READY</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             4. SECTION: CASE MANAGEMENT & CASE DETAIL VIEW
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-cases">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Case Dockets & Investigations</h1>
+              <p class="page-subtitle">Jurisdiction-isolated digital evidence dockets with role-based access control</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-cases">↻ Refresh</button>
+              <button class="btn btn-primary btn-sm" id="btn-open-create-case-modal">+ Register New Case</button>
+            </div>
+          </div>
+
+          <!-- Filters Bar -->
+          <div class="panel" style="padding: 14px 20px; margin-bottom: 18px;">
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 240px;">
+                <input type="text" id="filter-case-search" class="form-control" placeholder="Search by case number, caption, or jurisdiction...">
+              </div>
+              <div style="width: 180px;">
+                <select id="filter-case-status" class="form-control">
+                  <option value="">All Statuses</option>
+                  <option value="OPEN">OPEN</option>
+                  <option value="UNDER_ANALYSIS">UNDER ANALYSIS</option>
+                  <option value="COMPLETED">COMPLETED</option>
+                  <option value="ARCHIVED">ARCHIVED</option>
+                </select>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btn-reset-case-filters">Reset Filters</button>
+            </div>
+          </div>
+
+          <!-- Cases Master Table -->
+          <div class="panel" id="cases-list-panel">
             <div class="table-container">
-
-              <table
-                class="data-table"
-                id="table-recent-cases"
-              >
-
+              <table class="data-table" id="table-cases-all">
                 <thead>
-
                   <tr>
-                    <th>Case ID</th>
-                    <th>Case Title</th>
+                    <th>Case Docket ID</th>
+                    <th>Formal Docket Caption</th>
                     <th>Jurisdiction</th>
                     <th>Status</th>
-                    <th>Evidence</th>
-                    <th>Action</th>
+                    <th>Evidence Items</th>
+                    <th>Registered Date</th>
+                    <th>Actions</th>
                   </tr>
-
                 </thead>
-
-
-                <tbody id="tbody-recent-cases">
-
-                  <tr>
-
-                    <td
-                      colspan="6"
-                      class="text-center"
-                    >
-                      Loading investigations...
-                    </td>
-
-                  </tr>
-
+                <tbody id="tbody-cases-all">
+                  <tr><td colspan="7" class="text-center">Loading registered cases...</td></tr>
                 </tbody>
-
               </table>
-
             </div>
-
           </div>
 
+          <!-- CASE DETAIL FULL WORKSPACE -->
+          <div id="case-detail-workspace" style="display: none;">
+            <!-- Case Header Banner -->
+            <div class="panel panel-gold" style="margin-bottom: 20px;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn btn-sm btn-secondary" id="btn-back-to-case-list">← Back to Cases</button>
+                    <code style="font-size: 1rem; color: var(--gold-primary);" id="detail-case-id">CASE-XXXX</code>
+                    <span id="detail-case-status-badge"></span>
+                  </div>
+                  <h2 style="font-family: var(--font-heading); font-size: 1.5rem; margin-top: 8px;" id="detail-case-title">
+                    Case Title
+                  </h2>
+                  <p style="color: var(--text-muted); font-size: 0.85rem;" id="detail-case-jurisdiction">
+                    Jurisdiction Court
+                  </p>
+                </div>
 
+                <!-- Case Action Buttons -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="case-detail-action-buttons">
+                  <button class="btn btn-primary btn-sm" id="btn-case-pipeline">⚡ Process Pipeline</button>
+                  <button class="btn btn-secondary btn-sm" id="btn-case-generate-report">📜 Court Report</button>
+                  <button class="btn btn-secondary btn-sm" id="btn-case-verify">🛡️ Verify Admissibility</button>
+                  <button class="btn btn-secondary btn-sm" id="btn-case-export-bundle">📦 Export Bundle</button>
+                  <button class="btn btn-outline btn-sm" id="btn-case-view-audit">📑 Audit History</button>
+                </div>
+              </div>
+            </div>
 
-          <!-- Evidence Pipeline -->
+            <!-- Case Sub-Tabs Navigation -->
+            <div class="case-tabs-nav">
+              <button class="case-tab-btn active" data-subtab="overview">Overview</button>
+              <button class="case-tab-btn" data-subtab="evidence">Evidence Vault</button>
+              <button class="case-tab-btn" data-subtab="forensics">Forensics</button>
+              <button class="case-tab-btn" data-subtab="ai">AI Screener</button>
+              <button class="case-tab-btn" data-subtab="explainability">Explainability</button>
+              <button class="case-tab-btn" data-subtab="correlation">Correlation</button>
+              <button class="case-tab-btn" data-subtab="timeline">Chronology</button>
+              <button class="case-tab-btn" data-subtab="custody">Custody</button>
+              <button class="case-tab-btn" data-subtab="reports">Reports</button>
+              <button class="case-tab-btn" data-subtab="verification">Verification</button>
+              <button class="case-tab-btn" data-subtab="exhibits">Exhibits</button>
+              <button class="case-tab-btn" data-subtab="trial">Trial Disposition</button>
+              <button class="case-tab-btn" data-subtab="audit">Audit Log</button>
+            </div>
+
+            <!-- Subtab Panes Container -->
+            <div id="case-subpanes-container">
+              <div class="case-subpane active" id="subtab-overview">
+                <!-- Dynamically loaded case overview & operational intelligence -->
+              </div>
+              <div class="case-subpane" id="subtab-evidence">
+                <!-- Case-specific evidence items -->
+              </div>
+              <div class="case-subpane" id="subtab-forensics">
+                <!-- Case forensics workspace -->
+              </div>
+              <div class="case-subpane" id="subtab-ai">
+                <!-- Case AI screener results -->
+              </div>
+              <div class="case-subpane" id="subtab-explainability">
+                <!-- Explainability cards -->
+              </div>
+              <div class="case-subpane" id="subtab-correlation">
+                <!-- Correlation graph -->
+              </div>
+              <div class="case-subpane" id="subtab-timeline">
+                <!-- Timeline items -->
+              </div>
+              <div class="case-subpane" id="subtab-custody">
+                <!-- Custody ledger for case -->
+              </div>
+              <div class="case-subpane" id="subtab-reports">
+                <!-- Case court reports -->
+              </div>
+              <div class="case-subpane" id="subtab-verification">
+                <!-- Admissibility verification -->
+              </div>
+              <div class="case-subpane" id="subtab-exhibits">
+                <!-- Courtroom exhibits registry -->
+              </div>
+              <div class="case-subpane" id="subtab-trial">
+                <!-- Trial disposition & verdict -->
+              </div>
+              <div class="case-subpane" id="subtab-audit">
+                <!-- Case audit records -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             5. SECTION: EVIDENCE VAULT
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-evidence-vault">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Digital Evidence Vault</h1>
+              <p class="page-subtitle">Immutable Write-Once-Read-Many (WORM) repository with client-side SHA-256 pre-check</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-evidence">↻ Refresh</button>
+              <button class="btn btn-primary btn-sm" id="btn-open-upload-evidence-modal">+ Intake Evidence File</button>
+            </div>
+          </div>
 
           <div class="panel">
+            <div class="table-container">
+              <table class="data-table" id="table-evidence-all">
+                <thead>
+                  <tr>
+                    <th>Evidence ID</th>
+                    <th>Filename</th>
+                    <th>Type</th>
+                    <th>SHA-256 Digest</th>
+                    <th>Size</th>
+                    <th>Status</th>
+                    <th>Uploaded At</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-evidence-all">
+                  <tr><td colspan="8" class="text-center">Loading vaulted evidence records...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-            <div class="panel-header">
+        <!-- ==============================================================================
+             6. SECTION: FORENSIC ANALYSIS
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-forensics">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Forensic Analysis Workspace</h1>
+              <p class="page-subtitle">Non-destructive byte inspection, magic number verification, and metadata extraction</p>
+            </div>
+          </div>
 
-              <div>
+          <div class="panel" style="padding: 16px 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <label for="forensics-evidence-selector" style="font-weight: 600; color: var(--text-muted);">Select Evidence Artifact:</label>
+              <select id="forensics-evidence-selector" class="form-control" style="max-width: 380px;">
+                <option value="">-- Choose Vaulted Evidence Item --</option>
+              </select>
+              <button class="btn btn-primary btn-sm" id="btn-execute-forensics-analysis">Run Deep Forensic Inspection</button>
+            </div>
+          </div>
 
-                <h2>
-                  Evidence Processing Pipeline
-                </h2>
+          <div id="forensic-results-container">
+            <div class="empty-state">
+              <div class="empty-icon">🔬</div>
+              <h3 class="empty-title">Select Evidence to Inspect</h3>
+              <p class="empty-desc">Choose a vaulted evidence artifact above to view real forensic metadata and magic byte analysis.</p>
+            </div>
+          </div>
+        </section>
 
-                <p class="panel-subtitle">
-                  From secure intake to courtroom report
-                </p>
+        <!-- ==============================================================================
+             7. SECTION: AI INTELLIGENCE
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-ai-intelligence">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>AI Intelligence & Tamper Screening</h1>
+              <p class="page-subtitle">Statistical inference metrics, synthetic artifact detection, and media manipulation screening</p>
+            </div>
+          </div>
 
+          <div class="panel" style="padding: 16px 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <label for="ai-evidence-selector" style="font-weight: 600; color: var(--text-muted);">Target Evidence:</label>
+              <select id="ai-evidence-selector" class="form-control" style="max-width: 380px;">
+                <option value="">-- Choose Vaulted Evidence Item --</option>
+              </select>
+              <button class="btn btn-primary btn-sm" id="btn-execute-ai-screening">Execute AI Tamper Screening</button>
+            </div>
+          </div>
+
+          <div id="ai-results-container">
+            <div class="empty-state">
+              <div class="empty-icon">🧠</div>
+              <h3 class="empty-title">No Evidence Selected</h3>
+              <p class="empty-desc">Select an electronic evidence artifact to view model predictions, confidence, and tamper metrics.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             8. SECTION: EXPLAINABILITY
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-explainability">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Evidence Explainability Reasoning</h1>
+              <p class="page-subtitle">Traceable multi-step justification linking AI findings to technical indicators</p>
+            </div>
+          </div>
+
+          <div id="explainability-container">
+            <div class="empty-state">
+              <div class="empty-icon">💡</div>
+              <h3 class="empty-title">Select a Case or Evidence</h3>
+              <p class="empty-desc">Evidence-linked explainability reasoning is generated when pipeline analysis is executed.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             9. SECTION: CORRELATION GRAPH
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-correlation">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Evidence Intelligence & Correlation</h1>
+              <p class="page-subtitle">Cross-evidence matching, entity linkages, shared fingerprints, and anomaly red flags</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary btn-sm" id="btn-trigger-correlation-analysis">⚡ Run Case Correlation</button>
+            </div>
+          </div>
+
+          <div id="correlation-display-container">
+            <div class="empty-state">
+              <div class="empty-icon">🕸️</div>
+              <h3 class="empty-title">No Correlation Data Available</h3>
+              <p class="empty-desc">Select a case docket from the top header or run correlation analysis to identify cross-evidence patterns.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             10. SECTION: CHRONOLOGY TIMELINE
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-timeline">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Judicial Chronology Timeline</h1>
+              <p class="page-subtitle">Sequential milestone ledger of intake, forensic analysis, sealing, and court tenders</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="courtroom-timeline" id="vertical-timeline-container">
+              <!-- Dynamically populated vertical events -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             11. SECTION: CHAIN OF CUSTODY
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-custody">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Cryptographic Chain of Custody</h1>
+              <p class="page-subtitle">Immutable SHA-256 block ledger adhering to ISO/IEC 27037 forensic integrity standards</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="custody-input-evidence-id" style="font-weight: 600; color: var(--text-muted);">Evidence ID:</label>
+                <input type="text" id="custody-input-evidence-id" class="form-control" placeholder="e.g. EVD-2026-XXXX" style="width: 240px;">
+                <button class="btn btn-secondary btn-sm" id="btn-inspect-custody-ledger">Inspect Ledger</button>
               </div>
-
+              <button class="btn btn-primary btn-sm" id="btn-verify-custody-integrity">Verify Cryptographic Chain</button>
             </div>
 
+            <div id="custody-verification-banner" style="margin-bottom: 20px;"></div>
+            <div id="custody-blocks-container">
+              <div class="empty-state">
+                <div class="empty-icon">⛓️</div>
+                <h3 class="empty-title">Specify an Evidence ID</h3>
+                <p class="empty-desc">Enter an evidence identifier above to verify its unbroken sequence of cryptographic custody blocks.</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            <div class="pipeline-tracker">
+        <!-- ==============================================================================
+             12. SECTION: COURT REPORTS (BSA 2023)
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-reports">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Section 63/65B BSA Admissibility Reports</h1>
+              <p class="page-subtitle">Statutory electronic record affidavits conforming to the Bharatiya Sakshya Adhiniyam, 2023</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary btn-sm" id="btn-open-generate-report-modal">+ Generate New Court Report</button>
+            </div>
+          </div>
 
+          <div class="panel">
+            <div class="table-container">
+              <table class="data-table" id="table-reports-all">
+                <thead>
+                  <tr>
+                    <th>Report ID</th>
+                    <th>Case Docket</th>
+                    <th>Compliance Framework</th>
+                    <th>Report SHA-256</th>
+                    <th>Verification Code</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-reports-all">
+                  <tr><td colspan="7" class="text-center">Loading certified court reports...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
+          <!-- Report Preview Modal Container -->
+          <div id="report-view-container" style="display: none; margin-top: 24px;"></div>
+        </section>
+
+        <!-- ==============================================================================
+             13. SECTION: JUDICIAL VERIFICATION
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-verification">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Judicial Authenticity Verification</h1>
+              <p class="page-subtitle">Public and judicial gateway for verifying electronic certificates and QR code authenticity</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div style="display: flex; gap: 12px; max-width: 600px; margin-bottom: 24px;">
+              <input type="text" id="input-verify-code" class="form-control" placeholder="Enter Report ID, Verification Code, or SHA-256...">
+              <button class="btn btn-primary" id="btn-execute-verification">Verify Authenticity</button>
+            </div>
+
+            <div id="verification-result-container">
+              <div class="empty-state">
+                <div class="empty-icon">🛡️</div>
+                <h3 class="empty-title">Ready for Cryptographic Verification</h3>
+                <p class="empty-desc">Input a report verification code or docket sealing hash to validate its authenticity against the master ledger.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             14. SECTION: DISCOVERY BUNDLES
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-bundles">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Evidence Discovery Bundles</h1>
+              <p class="page-subtitle">Tamper-evident legal disclosure packages with cryptographically sealed package manifests</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary btn-sm" id="btn-open-create-bundle-modal">+ Export Case Bundle</button>
+            </div>
+          </div>
+
+          <div class="panel" id="bundles-container">
+            <div class="empty-state">
+              <div class="empty-icon">📦</div>
+              <h3 class="empty-title">No Discovery Bundles Generated Yet</h3>
+              <p class="empty-desc">Export a case bundle to assemble an encrypted disclosure package complete with custody logs and Section 63 affidavits.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             15. SECTION: COURTROOM EXHIBITS
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-exhibits">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Courtroom Exhibit Registry</h1>
+              <p class="page-subtitle">Formal trial evidence tendering, Section 63 admissibility objections, and judicial markings</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-open-tender-modal">Tender Evidence</button>
+              <button class="btn btn-primary btn-sm" id="btn-open-mark-exhibit-modal">Mark Judicial Exhibit</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="table-container">
+              <table class="data-table" id="table-exhibits-registry">
+                <thead>
+                  <tr>
+                    <th>Exhibit #</th>
+                    <th>Target ID</th>
+                    <th>Type</th>
+                    <th>Tendering Party</th>
+                    <th>Witness / Purpose</th>
+                    <th>Judicial Ruling</th>
+                    <th>Bench / Officer</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-exhibits-registry">
+                  <tr><td colspan="7" class="text-center">Loading courtroom exhibit register...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             16. SECTION: TRIAL DISPOSITION
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-trial-disposition">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Judicial Trial Disposition & Judgment</h1>
+              <p class="page-subtitle">Statutory verdicts under BNSS 2023, Section 503 evidence disposal orders, and case archival</p>
+            </div>
+          </div>
+
+          <!-- Judicial Lifecycle Flow Bar -->
+          <div class="panel">
+            <div class="pipeline-container">
+              <div class="pipeline-step completed">
+                <div class="step-circle">✓</div>
+                <div class="step-label">Trial Completed</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step active">
+                <div class="step-circle">⚖️</div>
+                <div class="step-label">Verdict Pronounced</div>
+              </div>
+              <div class="pipeline-arrow">➔</div>
               <div class="pipeline-step">
-
-                <div class="step-num">
-                  1
-                </div>
-
-                <div class="step-info">
-
-                  <strong>
-                    Secure Intake
-                  </strong>
-
-                  <span>
-                    Evidence registration &amp; preservation
-                  </span>
-
-                </div>
-
+                <div class="step-circle">3</div>
+                <div class="step-label">Objections Resolved</div>
               </div>
-
-
-              <div class="pipeline-arrow"></div>
-
-
+              <div class="pipeline-arrow">➔</div>
               <div class="pipeline-step">
-
-                <div class="step-num">
-                  2
-                </div>
-
-                <div class="step-info">
-
-                  <strong>
-                    SHA-256 Hash
-                  </strong>
-
-                  <span>
-                    Integrity fingerprint
-                  </span>
-
-                </div>
-
+                <div class="step-circle">4</div>
+                <div class="step-label">Disposal Orders</div>
               </div>
-
-
-              <div class="pipeline-arrow"></div>
-
-
+              <div class="pipeline-arrow">➔</div>
               <div class="pipeline-step">
-
-                <div class="step-num">
-                  3
-                </div>
-
-                <div class="step-info">
-
-                  <strong>
-                    Forensic Analysis
-                  </strong>
-
-                  <span>
-                    Metadata &amp; file analysis
-                  </span>
-
-                </div>
-
+                <div class="step-circle">5</div>
+                <div class="step-label">Judicial Archival</div>
               </div>
-
-
-              <div class="pipeline-arrow"></div>
-
-
-              <div class="pipeline-step">
-
-                <div class="step-num">
-                  4
-                </div>
-
-                <div class="step-info">
-
-                  <strong>
-                    AI Screening
-                  </strong>
-
-                  <span>
-                    Tamper &amp; synthesis analysis
-                  </span>
-
-                </div>
-
-              </div>
-
-
-              <div class="pipeline-arrow"></div>
-
-
-              <div class="pipeline-step">
-
-                <div class="step-num">
-                  5
-                </div>
-
-                <div class="step-info">
-
-                  <strong>
-                     Prepare Court Report
-                  </strong>
-
-                  <span>
-                    Evidence report &amp; verification
-                  </span>
-
-                </div>
-
-              </div>
-
             </div>
-
           </div>
 
-        </div>
+          <div id="trial-disposition-workspace">
+            <!-- Dynamically populated verdict, objection resolution, and disposal panels -->
+          </div>
+        </section>
 
-      </section>
-
-
-
-      <!-- =====================================================
-           CASES
-      ====================================================== -->
-
-      <section
-        class="tab-view"
-        id="tab-cases"
-      >
-
-        <div class="panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <h2>
-                Cases &amp; Investigations
-              </h2>
-
-              <p class="panel-subtitle">
-                Manage investigation records and associated evidence
-              </p>
-
+        <!-- ==============================================================================
+             17. SECTION: AUDIT TRAIL
+             ============================================================================== -->
+        <section class="tab-pane" id="tab-audit-trail">
+          <div class="page-header">
+            <div class="page-title-group">
+              <h1>Compliance Audit Trail</h1>
+              <p class="page-subtitle">Immutable compliance ledger tracking every electronic record access, hash check, and judicial action</p>
             </div>
-
-            <button
-              class="btn btn-primary"
-              id="btn-open-create-case"
-            >
-              + Create Case
-            </button>
-
+            <div class="page-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-audit">↻ Refresh Audit Log</button>
+            </div>
           </div>
 
-
-          <div class="table-container">
-
-            <table
-              class="data-table"
-              id="table-cases-full"
-            >
-
-              <thead>
-
-                <tr>
-                  <th>Case ID</th>
-                  <th>Title</th>
-                  <th>Description</th>
-                  <th>Jurisdiction</th>
-                  <th>Status</th>
-                  <th>Evidence</th>
-                  <th>Created</th>
-                </tr>
-
-              </thead>
-
-
-              <tbody id="tbody-cases-full">
-
-                <tr>
-
-                  <td
-                    colspan="7"
-                    class="text-center"
-                  >
-                    Loading case records...
-                  </td>
-
-                </tr>
-
-              </tbody>
-
-            </table>
-
+          <div class="panel">
+            <div class="table-container">
+              <table class="data-table" id="table-audit-trail">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                    <th>Resource</th>
+                    <th>Resource ID</th>
+                    <th>Actor ID</th>
+                    <th>Metadata</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-audit-trail">
+                  <tr><td colspan="6" class="text-center">Loading audit records...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
+        </section>
 
-        </div>
-
-
-
-        <!-- Create Case -->
-
-        <div
-          class="panel form-panel"
-          id="panel-create-case"
-          style="display:none;"
-        >
-
-          <div class="panel-header">
-
-            <div>
-
-              <h3>
-                Create Investigation Case
-              </h3>
-
-              <p class="panel-subtitle">
-                Register a new digital evidence investigation
-              </p>
-
-            </div>
-
-            <button
-              class="btn btn-sm btn-outline"
-              id="btn-close-create-case"
-            >
-              Cancel
-            </button>
-
-          </div>
-
-
-          <form
-            id="form-create-case"
-            class="form-grid"
-          >
-
-            <div class="form-group full-width">
-
-              <label for="case-title">
-                Case title *
-              </label>
-
-              <input
-                type="text"
-                id="case-title"
-                required
-                placeholder="Enter investigation title"
-              >
-
-            </div>
-
-
-            <div class="form-group full-width">
-
-              <label for="case-description">
-                Case description
-              </label>
-
-              <textarea
-                id="case-description"
-                rows="4"
-                placeholder="Enter investigation background and relevant details"
-              ></textarea>
-
-            </div>
-
-
-            <div class="form-group">
-
-              <label for="case-jurisdiction">
-                Court / Jurisdiction *
-              </label>
-
-              <input
-                type="text"
-                id="case-jurisdiction"
-                required
-                placeholder="Enter court or jurisdiction"
-              >
-
-            </div>
-
-
-            <div class="form-actions full-width">
-
-              <button
-                type="submit"
-                class="btn btn-primary"
-              >
-                Register Case
-              </button>
-
-            </div>
-
-          </form>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =====================================================
-           EVIDENCE INTAKE
-      ====================================================== -->
-
-      <section
-        class="tab-view"
-        id="tab-intake"
-      >
-
-        <div class="panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <h2>
-                Evidence Intake
-              </h2>
-
-              <p class="panel-subtitle">
-                Securely register and preserve digital evidence
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <form id="form-evidence-intake">
-
-            <div class="form-grid">
-
-
-              <div class="form-group">
-
-                <label for="intake-case-select">
-                  Case *
-                </label>
-
-                <select
-                  id="intake-case-select"
-                  required
-                >
-
-                  <option value="">
-                    Select investigation
-                  </option>
-
-                </select>
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label for="intake-source">
-                  Acquisition source
-                </label>
-
-                <input
-                  type="text"
-                  id="intake-source"
-                  placeholder="Device, cloud storage or other source"
-                >
-
-              </div>
-
-            </div>
-
-
-            <!-- Upload -->
-
-            <div
-              class="dropzone"
-              id="evidence-dropzone"
-            >
-
-              <div class="dropzone-icon">
-
-                <svg class="icon">
-                  <use href="#i-evidence"></use>
-                </svg>
-
-              </div>
-
-              <h3>
-                Upload Digital Evidence
-              </h3>
-
-              <p>
-                Images · Audio · Video · PDF · Documents
-              </p>
-
-              <span
-                class="btn btn-outline"
-                id="btn-browse-file"
-              >
-                Browse Evidence
-              </span>
-
-              <input
-                type="file"
-                id="evidence-file-input"
-                style="display:none;"
-                required
-              >
-
-            </div>
-
-
-            <!-- File Verification -->
-
-            <div
-              id="file-precheck-box"
-              class="precheck-box"
-              style="display:none;"
-            >
-
-              <div class="precheck-row">
-
-                <strong>
-                  Selected file:
-                </strong>
-
-                <span id="precheck-filename">
-                  -
-                </span>
-
-              </div>
-
-
-              <div class="precheck-row">
-
-                <strong>
-                  File size:
-                </strong>
-
-                <span id="precheck-size">
-                  -
-                </span>
-
-              </div>
-
-
-              <div class="precheck-row hash-row">
-
-                <strong>
-                  SHA-256:
-                </strong>
-
-                <code id="precheck-hash">
-                  Calculating...
-                </code>
-
-              </div>
-
-            </div>
-
-
-            <div class="form-actions">
-
-              <button
-                type="submit"
-                class="btn btn-primary"
-                id="btn-submit-intake"
-                disabled
-              >
-                Secure Evidence
-              </button>
-
-            </div>
-
-          </form>
-
-
-          <div
-            id="intake-result-banner"
-            class="result-banner"
-            style="display:none;"
-          ></div>
-
-        </div>
-
-
-        <div
-          id="analysis-result"
-          style="display:none;"
-        ></div>
-
-      </section>
-
-
-
-      <!-- =====================================================
-           CHAIN OF CUSTODY
-      ====================================================== -->
-
-      <section
-        class="tab-view"
-        id="tab-custody"
-      >
-
-        <div class="panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <h2>
-                Chain of Custody
-              </h2>
-
-              <p class="panel-subtitle">
-                Review and verify the evidence custody history
-              </p>
-
-            </div>
-
-
-            <div class="custody-filter">
-
-              <label for="custody-evidence-id">
-                Evidence ID
-              </label>
-
-              <input
-                type="text"
-                id="custody-evidence-id"
-                placeholder="EVD-2026-XXXX"
-              >
-
-              <button
-                class="btn btn-outline btn-sm"
-                id="btn-fetch-custody"
-              >
-                Inspect
-              </button>
-
-              <button
-                class="btn btn-primary btn-sm"
-                id="btn-verify-chain"
-              >
-                Verify
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <div
-            id="custody-verification-badge"
-            class="verification-badge neutral"
-          >
-            Enter an evidence ID to inspect its custody record.
-          </div>
-
-
-          <div
-            class="timeline-container"
-            id="custody-timeline"
-          ></div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =====================================================
-           COURT REPORTS
-      ====================================================== -->
-
-      <section
-        class="tab-view"
-        id="tab-reports"
-      >
-
-        <div class="panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <h2>
-                Courtroom Reports
-              </h2>
-
-              <p class="panel-subtitle">
-                Generate structured digital evidence reports
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div class="report-generator-box">
-
-            <p>
-              Generate digital evidence documentation under the
-              <strong>
-                Bharatiya Sakshya Adhiniyam, 2023
-              </strong>.
-            </p>
-
-
-            <div class="form-grid">
-
-
-              <div class="form-group">
-
-                <label for="report-case-select">
-                  Case
-                </label>
-
-                <select id="report-case-select">
-
-                  <option value="">
-                    Select case
-                  </option>
-
-                </select>
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label for="report-officer-name">
-                  Certifying officer
-                </label>
-
-                <input
-                  type="text"
-                  id="report-officer-name"
-                  placeholder="Officer name"
-                >
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label for="report-officer-badge">
-                  Officer ID
-                </label>
-
-                <input
-                  type="text"
-                  id="report-officer-badge"
-                  placeholder="Service / officer ID"
-                >
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label for="report-jurisdiction">
-                  Court / Jurisdiction
-                </label>
-
-                <input
-                  type="text"
-                  id="report-jurisdiction"
-                  placeholder="Court or jurisdiction"
-                >
-
-              </div>
-
-            </div>
-
-
-            <div class="form-actions">
-
-              <button
-                class="btn btn-primary"
-                id="btn-generate-report"
-              >
-                Generate Court Report
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <div
-            id="report-output-display"
-            class="report-display"
-            style="display:none;"
-          ></div>
-
-        </div>
-
-      </section>
-
-    </main>
-
+      </main>
+    </div>
   </div>
 
+  <!-- ==============================================================================
+       MODALS SYSTEM
+       ============================================================================== -->
+  
+  <!-- Create Case Modal -->
+  <div class="modal-overlay" id="modal-create-case">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Register Investigative Case Docket</h3>
+        <button class="modal-close" onclick="UI.closeModal('modal-create-case')">&times;</button>
+      </div>
+      <form id="form-modal-create-case">
+        <div class="modal-body">
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <div class="form-group">
+              <label for="m-case-title">Formal Docket Caption / Title *</label>
+              <input type="text" id="m-case-title" required placeholder="e.g. State of Maharashtra vs. Cyber Syndicate">
+            </div>
+            <div class="form-group">
+              <label for="m-case-jurisdiction">Court / Jurisdiction Authority *</label>
+              <input type="text" id="m-case-jurisdiction" required value="High Court of Delhi">
+            </div>
+            <div class="form-group">
+              <label for="m-case-desc">Case Narrative & Origin</label>
+              <textarea id="m-case-desc" rows="3" placeholder="Nature of electronic records and investigation summary..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="UI.closeModal('modal-create-case')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Register Docket</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  <!-- =========================================================
-       JAVASCRIPT
-  ========================================================== -->
+  <!-- Evidence Intake Modal -->
+  <div class="modal-overlay" id="modal-intake-evidence">
+    <div class="modal-card wide">
+      <div class="modal-header">
+        <h3 class="modal-title">Digital Evidence Ingestion (WORM Vault)</h3>
+        <button class="modal-close" onclick="UI.closeModal('modal-intake-evidence')">&times;</button>
+      </div>
+      <form id="form-modal-intake">
+        <div class="modal-body">
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+            <div class="form-group">
+              <label for="m-intake-case-select">Target Case Docket *</label>
+              <select id="m-intake-case-select" required>
+                <option value="">-- Choose Docket --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="m-intake-source">Acquisition Source / Hardware</label>
+              <input type="text" id="m-intake-source" placeholder="e.g. Seized iPhone 14 / Cloud Snapshot">
+            </div>
+          </div>
 
+          <div class="dropzone" id="m-evidence-dropzone">
+            <div class="dropzone-icon">📁</div>
+            <h4 class="dropzone-title">Drag & drop evidence file here</h4>
+            <p class="dropzone-desc">Images, Videos, Audios, Documents (PDF) • Up to 500MB</p>
+            <span class="btn btn-outline btn-sm">Browse Files</span>
+            <input type="file" id="m-evidence-file-input" style="display: none;" required>
+          </div>
+
+          <div class="precheck-box" id="m-file-precheck-box" style="display: none;">
+            <div class="precheck-row">
+              <strong>Filename:</strong> <span id="m-precheck-filename">-</span>
+            </div>
+            <div class="precheck-row">
+              <strong>File Size:</strong> <span id="m-precheck-size">-</span>
+            </div>
+            <div class="precheck-row">
+              <strong>Client WebCrypto SHA-256:</strong>
+              <code id="m-precheck-hash" style="color:var(--text-gold); font-size:0.78rem;">Calculating...</code>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="UI.closeModal('modal-intake-evidence')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-modal-intake" disabled>
+            Vault File & Seal Genesis Block
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Generate Report Modal -->
+  <div class="modal-overlay" id="modal-generate-report">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Generate Court Admissibility Report (BSA 2023)</h3>
+        <button class="modal-close" onclick="UI.closeModal('modal-generate-report')">&times;</button>
+      </div>
+      <form id="form-modal-generate-report">
+        <div class="modal-body">
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <div class="form-group">
+              <label for="m-report-case-select">Target Case Docket *</label>
+              <select id="m-report-case-select" required>
+                <option value="">-- Choose Docket --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="m-report-officer-name">Certifying Officer / Investigator *</label>
+              <input type="text" id="m-report-officer-name" required value="Dhananjay Sharma">
+            </div>
+            <div class="form-group">
+              <label for="m-report-badge">Badge / Officer ID *</label>
+              <input type="text" id="m-report-badge" required value="INV-DL-9841">
+            </div>
+            <div class="form-group">
+              <label for="m-report-jurisdiction">Court Jurisdiction</label>
+              <input type="text" id="m-report-jurisdiction" value="High Court of Delhi">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="UI.closeModal('modal-generate-report')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Generate Section 63/65B Certificate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Global Search Overlay Modal (Ctrl+K) -->
+  <div class="modal-overlay" id="modal-global-search">
+    <div class="modal-card wide animate-scale-up" style="max-height: 80vh;">
+      <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+        <input type="text" id="input-global-search" class="form-control" placeholder="Search cases, evidence, reports, exhibits, hashes..." style="font-size: 1.1rem; padding: 12px 16px;">
+        <button class="modal-close" onclick="UI.closeModal('modal-global-search')" style="margin-left: 12px;">&times;</button>
+      </div>
+      <div class="modal-body" id="global-search-results-body" style="padding-top: 14px;">
+        <div style="font-size: 0.8rem; color: var(--text-dim); text-align: center; padding: 30px;">
+          Type keywords or identifiers to search across all judicial records.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="js/api.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/app.js"></script>
-
-  <script>
-  const loginScreen = document.getElementById("login-screen");
-  const mainApplication = document.getElementById("main-application");
-  const loginForm = document.getElementById("login-form");
-
-  // Check whether the user is already logged in
-  const loggedIn = localStorage.getItem("nyay_token");
-
-  if (loggedIn) {
-    loginScreen.style.display = "none";
-    mainApplication.style.display = "flex";
-  }
-
-  loginForm.addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
-
-    if (!email || !password) {
-      alert("Please enter email and password.");
-      return;
-    }
-
-    // Temporary development login
-    localStorage.setItem("nyay_token", "development-session");
-
-    // Hide login
-    loginScreen.style.display = "none";
-
-    // Show existing NYAYAI application
-    mainApplication.style.display = "flex";
-  });
-</script>
-
 </body>
-
 </html>
-```
